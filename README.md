@@ -31,6 +31,19 @@ read an audit log.
   and hide content; admins change roles, suspend accounts and read the audit log.
   All permissions are checked by the API, never only in the browser.
 
+### Club badges and photos
+
+- Every club has an original shield badge drawn in its kit colours and pattern
+  (`frontend/src/components/ui/ClubBadge.tsx`, colours in `frontend/src/lib/clubs.ts`).
+  They are deliberately **not** the official crests, which are trademarks that need a licence.
+- Article headers and club pages are tinted with the club's colour.
+- Articles can include photos from **Wikimedia Commons only** (freely licensed). Each one shows
+  a caption and the photographer and licence, linked to its Commons page, as the licences
+  require. Markdown format:
+  `![Alt](https://upload.wikimedia.org/... "Caption||Photo: Name, CC BY-SA 4.0, via Wikimedia Commons||https://commons.wikimedia.org/wiki/File:...")`
+- The site works on phones: every page fits a 375 px screen (checked with Playwright),
+  the club bar scrolls sideways, and the header has a search icon.
+
 ## Tech stack
 
 | Layer | Technology |
