@@ -5,8 +5,11 @@ fans publish their own pieces in Markdown, upvote, comment and reply, bookmark a
 follow clubs. Moderators work through a reports queue, and administrators manage users and
 read an audit log.
 
-**Live site:** _deploying, link coming soon_
-**API health:** _coming soon_
+**Live site:** https://footballhub-three.vercel.app  
+**API health:** https://footballhub-api-coty.onrender.com/actuator/health
+
+> The API runs on Render's free plan and sleeps when idle, so the first page load after a
+> quiet spell can take up to a minute.
 
 ![CI](https://github.com/Ankur42177/footballhub/actions/workflows/ci.yml/badge.svg)
 
