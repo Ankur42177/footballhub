@@ -1,69 +1,157 @@
-import Image from "next/image";
+import Link from "next/link";
+import { Suspense } from "react";
 
-export default function Home() {
+import { BlogFeed, BlogFeedSkeleton } from "@/components/blog/BlogFeed";
+import { FeaturedArticle } from "@/components/blog/FeaturedArticle";
+import { pageQuery, withParams } from "@/components/ui/Pagination";
+import { formatDate } from "@/lib/format";
+import { firstParam, pageParam } from "@/lib/navigation";
+import { getFeed } from "@/lib/server-api";
+import type { FeedParams } from "@/lib/server-api";
+
+type Sort = NonNullable<FeedParams["sort"]>;
+
+const SORTS: { value: Sort; label: string }[] = [
+  { value: "latest", label: "Latest" },
+  { value: "trending", label: "Trending" },
+  { value: "top", label: "Most upvoted" },
+];
+
+function parseSort(value: string | undefined): Sort {
+  return SORTS.some((sort) => sort.value === value) ? (value as Sort) : "latest";
+}
+
+export default function HomePage(props: PageProps<"/">) {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <Suspense fallback={<HomeSkeleton />}>
+      <HomeContent searchParams={props.searchParams} />
+    </Suspense>
+  );
+}
+
+async function HomeContent({ searchParams }: { searchParams: PageProps<"/">["searchParams"] }) {
+  const params = await searchParams;
+  const sort = parseSort(firstParam(params.sort));
+  const page = pageParam(params.page);
+  const showLead = sort === "latest" && page === 0;
+
+  const [feed, trending] = await Promise.all([
+    getFeed({ sort, page, size: showLead ? 11 : 10 }),
+    getFeed({ sort: "trending", size: 5 }),
+  ]);
+
+  const lead = showLead ? feed.content[0] : undefined;
+  const rest = lead ? { ...feed, content: feed.content.slice(1) } : feed;
+  const hrefFor = (target: number) => withParams("/", { sort: sort === "latest" ? undefined : sort, page: pageQuery(target) });
+
+  return (
+    <>
+      {lead && <h1 className="sr-only">FootballHub: Premier League analysis by fans</h1>}
+      {lead ? (
+        <FeaturedArticle blog={lead} />
+      ) : (
+        <div className="border-b border-line bg-pitch-deep">
+          <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
+            <h1 className="display text-5xl sm:text-6xl">
+              {sort === "top" ? "Most upvoted" : sort === "trending" ? "Trending now" : "Latest articles"}
+            </h1>
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
+      )}
+
+      <div className="mx-auto grid max-w-6xl gap-12 px-4 py-10 sm:px-6 lg:grid-cols-[minmax(0,1fr)_18rem]">
+        <section aria-labelledby="feed-title">
+          <div className="flex flex-wrap items-end justify-between gap-4">
+            <h2 id="feed-title" className="display-medium text-3xl">
+              {lead ? "More from the community" : "Articles"}
+            </h2>
+            <nav aria-label="Sort articles" className="flex gap-1">
+              {SORTS.map((option) => (
+                <Link
+                  key={option.value}
+                  href={option.value === "latest" ? "/" : `/?sort=${option.value}`}
+                  aria-current={option.value === sort ? "page" : undefined}
+                  className={`rounded-chip px-3 py-1 text-[0.95rem] no-underline ${
+                    option.value === sort ? "bg-chalk text-pitch" : "text-chalk-dim hover:text-chalk"
+                  }`}
+                >
+                  {option.label}
+                </Link>
+              ))}
+            </nav>
+          </div>
+          <div className="mt-5">
+            <BlogFeed
+              page={rest}
+              hrefFor={hrefFor}
+              empty={
+                lead ? (
+                  <p>That&apos;s everything so far.</p>
+                ) : (
+                  <p>
+                    No articles yet. <Link href="/write">Be the first to write one</Link>.
+                  </p>
+                )
+              }
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+          </div>
+        </section>
+
+        <aside className="flex flex-col gap-10">
+          {trending.content.length > 0 && (
+            <section aria-labelledby="trending-title">
+              <h2 id="trending-title" className="display-medium text-2xl">
+                Trending
+              </h2>
+              <ol className="mt-3 flex flex-col gap-4">
+                {trending.content.map((blog, index) => (
+                  <li key={blog.id} className="grid grid-cols-[2rem_1fr] gap-2">
+                    <span className="score text-3xl text-floodlight" aria-hidden="true">
+                      {index + 1}
+                    </span>
+                    <div>
+                      <Link href={`/blogs/${blog.slug}`} className="font-semibold leading-snug no-underline hover:underline">
+                        {blog.title}
+                      </Link>
+                      <p className="mt-0.5 text-sm text-chalk-dim">
+                        {blog.club?.name ?? "General"}, {formatDate(blog.publishedAt)}
+                      </p>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+            </section>
+          )}
+          <section className="border-t border-line pt-6">
+            <h2 className="display-medium text-2xl">Got a take?</h2>
+            <p className="mt-2 text-[0.95rem] text-chalk-dim">
+              Tactics, transfers, the one substitution that changed everything. Write it up and let other fans argue
+              with you.
+            </p>
+            <Link href="/write" className="btn btn-primary mt-4">
+              Write an article
+            </Link>
+          </section>
+        </aside>
+      </div>
+    </>
+  );
+}
+
+function HomeSkeleton() {
+  return (
+    <>
+      <div className="border-b border-line bg-pitch-deep" aria-hidden="true">
+        <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-24">
+          <div className="skeleton h-4 w-40" />
+          <div className="skeleton mt-5 h-16 w-full max-w-3xl" />
+          <div className="skeleton mt-3 h-16 w-2/3 max-w-2xl" />
         </div>
-      </main>
-    </div>
+      </div>
+      <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
+        <span className="sr-only">Loading articles…</span>
+        <BlogFeedSkeleton />
+      </div>
+    </>
   );
 }

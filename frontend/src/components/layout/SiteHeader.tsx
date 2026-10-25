@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Suspense } from "react";
 
 import { UserMenu } from "@/components/layout/UserMenu";
 
@@ -32,7 +33,10 @@ export function SiteHeader() {
           />
         </form>
 
-        <UserMenu />
+        {/* UserMenu reads the pathname, which is request data on dynamic routes. */}
+        <Suspense fallback={<div className="ml-auto h-9 w-28 sm:ml-0" aria-hidden="true" />}>
+          <UserMenu />
+        </Suspense>
       </div>
     </header>
   );

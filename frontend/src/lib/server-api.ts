@@ -2,7 +2,7 @@ import "server-only";
 
 import { cookies } from "next/headers";
 
-import type { BlogDetail, BlogSummary, Club, Comment, Me, Page, PublicProfile } from "@/types/api";
+import type { BlogDetail, BlogSummary, Club, Comment, Me, Notification, Page, PublicProfile } from "@/types/api";
 
 /**
  * Server-side reads for Server Components. They call the API directly and forward
@@ -87,6 +87,22 @@ export function getClub(slug: string): Promise<Club | null> {
 
 export function getProfile(username: string): Promise<PublicProfile | null> {
   return backendGet<PublicProfile>(`/profiles/${encodeURIComponent(username)}`);
+}
+
+export async function getMyBlogs(status: string | undefined, page: number): Promise<Page<BlogSummary>> {
+  return (await backendGet<Page<BlogSummary>>(`/users/me/blogs${query({ status, page, size: 20 })}`)) ?? emptyPage();
+}
+
+export async function getMyBookmarks(page: number): Promise<Page<BlogSummary>> {
+  return (await backendGet<Page<BlogSummary>>(`/users/me/bookmarks${query({ page, size: 20 })}`)) ?? emptyPage();
+}
+
+export async function getMyClubs(): Promise<Club[]> {
+  return (await backendGet<Club[]>("/users/me/clubs")) ?? [];
+}
+
+export async function getNotifications(page = 0): Promise<Page<Notification>> {
+  return (await backendGet<Page<Notification>>(`/notifications${query({ page, size: 20 })}`)) ?? emptyPage();
 }
 
 function emptyPage<T>(): Page<T> {
