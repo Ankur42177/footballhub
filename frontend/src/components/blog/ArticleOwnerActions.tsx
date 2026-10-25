@@ -3,13 +3,26 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
+import { useSession } from "@/components/session/SessionProvider";
 import { useAuthAction } from "@/components/session/useAuthAction";
 import { api } from "@/lib/api";
 import type { BlogDetail, BlogStatus } from "@/types/api";
 
 /** Edit, publish, archive and delete controls shown to the author (and admins). */
-export function ArticleOwnerActions({ blogId, slug, status }: { blogId: number; slug: string; status: BlogStatus }) {
+export function ArticleOwnerActions({
+  blogId,
+  slug,
+  status,
+  authorUsername,
+}: {
+  blogId: number;
+  slug: string;
+  status: BlogStatus;
+  authorUsername: string;
+}) {
   const router = useRouter();
+  const { me } = useSession();
+  const isAuthor = !me || me.username === authorUsername;
   const { run, pending, error } = useAuthAction(`/blogs/${slug}`);
 
   async function changeStatus(action: "publish" | "archive") {
@@ -18,7 +31,8 @@ export function ArticleOwnerActions({ blogId, slug, status }: { blogId: number; 
   }
 
   async function remove() {
-    if (!window.confirm("Delete this article for good? Its votes, comments and bookmarks go with it.")) return;
+    const whose = isAuthor ? "this article" : `@${authorUsername}'s article`;
+    if (!window.confirm(`Delete ${whose} for good? Its votes, comments and bookmarks go with it.`)) return;
     const removed = await run(async () => {
       await api(`/blogs/${blogId}`, { method: "DELETE" });
       return true;
@@ -32,9 +46,13 @@ export function ArticleOwnerActions({ blogId, slug, status }: { blogId: number; 
   return (
     <div className="notice flex flex-col gap-3">
       <p className="text-chalk-dim">
-        {status === "DRAFT" && "This is a draft. Only you and the moderators can see it."}
-        {status === "ARCHIVED" && "This article is archived. It's hidden from feeds and only you can open it."}
-        {status === "PUBLISHED" && "You wrote this article."}
+        {status === "DRAFT" &&
+          (isAuthor ? "This is a draft. Only you and the moderators can see it." : "Draft by another author (admin view).")}
+        {status === "ARCHIVED" &&
+          (isAuthor
+            ? "This article is archived. It's hidden from feeds and only you can open it."
+            : "Archived by its author (admin view).")}
+        {status === "PUBLISHED" && (isAuthor ? "You wrote this article." : "Admin controls for this article.")}
       </p>
       <div className="flex flex-wrap gap-2">
         <Link href={`/write?edit=${encodeURIComponent(slug)}`} className="btn btn-secondary btn-small">

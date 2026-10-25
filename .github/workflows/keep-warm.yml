@@ -1,0 +1,25 @@
+name: Keep API awake
+
+# Render's free plan sleeps a web service after 15 minutes without traffic, and a cold
+# start of the Spring Boot API takes over a minute. Pinging every 10 minutes keeps it awake.
+# The liveness endpoint doesn't touch the database, so Neon can still suspend when idle
+# and doesn't use up compute hours.
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Ping the API
+        run: |
+          for attempt in 1 2 3; do
+            if curl -fsS --max-time 120 https://footballhub-api-coty.onrender.com/actuator/health/liveness; then
+              exit 0
+            fi
+            sleep 20
+          done
+          echo "API did not answer" && exit 1

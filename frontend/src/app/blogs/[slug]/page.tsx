@@ -83,7 +83,7 @@ async function Article({ params }: { params: Params }) {
 
       {blog.canEdit && (
         <div className="mb-8">
-          <ArticleOwnerActions blogId={blog.id} slug={blog.slug} status={blog.status} />
+          <ArticleOwnerActions blogId={blog.id} slug={blog.slug} status={blog.status} authorUsername={blog.author.username} />
         </div>
       )}
       {blog.hidden && (

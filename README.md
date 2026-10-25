@@ -186,9 +186,52 @@ on Render in Docker and the database is on Neon.
    to the Render URL and `NEXT_PUBLIC_SITE_URL` to the Vercel URL, then deploy.
 4. Set `FRONTEND_URL` on Render to the Vercel URL and let it redeploy.
 
+**This deployment:**
+
+| Piece | Service | Where |
+|---|---|---|
+| Frontend | Vercel project `footballhub` (root `frontend`, Node 22) | https://footballhub-three.vercel.app |
+| API | Render web service `footballhub-api` (Docker, free, Ohio) | https://footballhub-api-coty.onrender.com |
+| Database | Neon project `football_blog`, database `footballhub` (AWS us-east-2) | direct host, `sslmode=require` |
+
+Pushing to `main` redeploys both the frontend (Vercel) and the API (Render).
+
 Free-tier notes: the Render free plan sleeps after about 15 minutes without traffic and takes
 up to a minute to wake, so the first request after a quiet spell is slow (the site shows a
 "waking up" message rather than failing). Neon's free tier also suspends idle compute.
+
+## Performance on free hosting
+
+The API runs on Render's free plan: 0.1 of a CPU core and 512 MB of memory. Spring Boot is
+CPU-hungry while it starts, so a plain image took **over 5 minutes** to start on that much
+CPU (measured locally with `docker run --cpus=0.1 --memory=512m`). Three changes fix the
+experience:
+
+| Change | Where | Effect |
+|---|---|---|
+| JVM flags for small machines: serial GC, C1-only JIT, one compiler thread, smaller stacks | `backend/Dockerfile` | Startup 5+ min to about 3 min |
+| Class Data Sharing: a training start at build time archives the loaded classes, real starts map the archive | `backend/Dockerfile` | About 3 min to **about 90 s**, using about 300 MB of memory |
+| Keep-awake ping every 10 minutes to `/actuator/health/liveness` (doesn't touch the database) | `.github/workflows/keep-warm.yml` | The API rarely sleeps, so visitors don't wait for a cold start |
+| Server-side API calls time out after 12 s; the error page says the server is starting and retries every 10 s | `frontend/src/lib/server-api.ts`, `frontend/src/app/error.tsx` | No more 60-second blank page; the page recovers by itself |
+
+All three services sit in the same area (Vercel functions in Washington, Render in Ohio,
+Neon in AWS us-east-2), so once the API is awake a page needs only a few milliseconds per
+API call. Neon's free compute suspends after a few idle minutes and wakes in about a second.
+
+If you upgrade Render to a paid instance (no sleep, a full CPU), startup drops to a few
+seconds and the keep-awake workflow can be removed.
+
+## Roles and admin
+
+| Role | Can do |
+|---|---|
+| Member | Write, edit and delete their own articles; vote, comment, reply, bookmark, follow clubs, report content |
+| Moderator | Everything a member can, plus the reports queue, hiding and unhiding articles and comments, deleting any comment |
+| Admin | Everything a moderator can, plus editing, archiving and deleting **any** article, changing roles, suspending accounts and reading the audit log |
+
+Accounts registered with an email listed in `ADMIN_EMAILS` become admins automatically, and
+existing accounts with those emails are promoted when the API restarts. The live site's admin
+is the owner's account (`@ankur`).
 
 ## Security notes
 

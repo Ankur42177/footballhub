@@ -13,6 +13,8 @@ import type { BlogDetail, BlogSummary, Club, Comment, Me, Notification, Page, Pu
 
 const BACKEND_URL = (process.env.BACKEND_URL ?? "http://localhost:8080").replace(/\/$/, "");
 
+const TIMEOUT_MS = 12_000;
+
 export class BackendUnavailableError extends Error {}
 
 async function backendGet<T>(path: string, { personalised = true } = {}): Promise<T | null> {
@@ -24,7 +26,13 @@ async function backendGet<T>(path: string, { personalised = true } = {}): Promis
 
   let response: Response;
   try {
-    response = await fetch(`${BACKEND_URL}/api/v1${path}`, { headers, cache: "no-store" });
+    // Fail fast instead of hanging while the API is asleep or starting; error.tsx then
+    // shows a "starting up" screen that retries on its own.
+    response = await fetch(`${BACKEND_URL}/api/v1${path}`, {
+      headers,
+      cache: "no-store",
+      signal: AbortSignal.timeout(TIMEOUT_MS),
+    });
   } catch {
     throw new BackendUnavailableError("The FootballHub API could not be reached.");
   }
