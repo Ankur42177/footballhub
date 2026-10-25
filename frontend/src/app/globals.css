@@ -25,41 +25,49 @@
   --radius-panel: 6px;
 }
 
-:root {
-  color-scheme: dark;
-  --kit: var(--color-line-strong);
-}
+/*
+ * Element defaults live in the base layer so Tailwind utilities (text-pitch on a link,
+ * .btn-primary colours) always win over them. Unlayered rules would beat every utility.
+ */
+@layer base {
+  :root {
+    color-scheme: dark;
+    --kit: var(--color-line-strong);
+  }
 
-html {
-  background: var(--color-pitch);
-  -webkit-text-size-adjust: 100%;
-}
+  html {
+    background: var(--color-pitch);
+    -webkit-text-size-adjust: 100%;
+  }
 
-body {
-  background: var(--color-pitch);
-  color: var(--color-chalk);
-  font-family: var(--font-serif);
-  font-size: 1.0625rem;
-  line-height: 1.6;
-  font-optical-sizing: auto;
-  -webkit-font-smoothing: antialiased;
-}
+  body {
+    background: var(--color-pitch);
+    color: var(--color-chalk);
+    font-family: var(--font-serif);
+    font-size: 1.0625rem;
+    line-height: 1.6;
+    font-optical-sizing: auto;
+    -webkit-font-smoothing: antialiased;
+  }
 
-::selection {
-  background: var(--color-floodlight);
-  color: var(--color-pitch);
-}
+  ::selection {
+    background: var(--color-floodlight);
+    color: var(--color-pitch);
+  }
 
-:focus-visible {
-  outline: 3px solid var(--color-floodlight);
-  outline-offset: 2px;
-  border-radius: 2px;
-}
+  :focus-visible {
+    outline: 3px solid var(--color-floodlight);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
 
-a {
-  color: inherit;
-  text-decoration-thickness: 1px;
-  text-underline-offset: 3px;
+  /* :where() keeps specificity at zero, so classes such as .btn-primary or text-pitch always
+     win even if the build reorders this rule after them. */
+  :where(a) {
+    color: inherit;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+  }
 }
 
 /* Headline type: tall, condensed, stadium-signage. Used as a design element. */
@@ -390,4 +398,38 @@ a {
 
 dialog::backdrop {
   background: rgb(5 10 18 / 0.7);
+}
+
+/* Photos inside articles (Wikimedia Commons only, with credit). */
+.article-figure {
+  margin-block: 2em;
+}
+.article-figure img {
+  display: block;
+  width: 100%;
+  max-height: 34rem;
+  object-fit: contain;
+  background: var(--color-pitch-deep);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-panel);
+}
+.article-body > .article-figure:first-child {
+  margin-top: 0;
+}
+.article-figure figcaption {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.25rem 1rem;
+  margin-top: 0.6rem;
+  font-size: 0.875rem;
+  line-height: 1.45;
+  color: var(--color-chalk-dim);
+}
+.article-figure-credit {
+  font-size: 0.8rem;
+  opacity: 0.85;
+}
+.article-body .article-figure-credit a {
+  color: inherit;
 }

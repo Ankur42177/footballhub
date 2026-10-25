@@ -58,12 +58,12 @@ export function UserMenu() {
   }
 
   if (me === undefined) {
-    return <div className="ml-auto h-9 w-28 sm:ml-0" aria-hidden="true" />;
+    return <div className="h-9 w-28" aria-hidden="true" />;
   }
 
   if (me === null) {
     return (
-      <div className="ml-auto flex items-center gap-3 sm:ml-0">
+      <div className="flex items-center gap-3">
         <Link href={loginHref(pathname)} className="text-[0.95rem] text-chalk-dim no-underline hover:text-chalk">
           Log in
         </Link>
@@ -78,7 +78,7 @@ export function UserMenu() {
   }
 
   return (
-    <div className="ml-auto flex items-center gap-3 sm:ml-0" ref={container}>
+    <div className="flex items-center gap-3" ref={container}>
       <Link
         href="/write"
         className="hidden rounded-chip bg-floodlight px-4 py-1.5 font-display text-[1.05rem] font-bold text-pitch no-underline hover:bg-floodlight-dim sm:inline-block"

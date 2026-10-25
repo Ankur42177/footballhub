@@ -219,7 +219,7 @@ export function BlogEditor({ clubs, existing }: { clubs: Pick<Club, "id" | "name
           )}
         </div>
         <p id="content-help" className={fieldErrors.content ? "field-error" : "hint mt-1"}>
-          {fieldErrors.content ?? "Markdown is supported. HTML and images are not."}
+          {fieldErrors.content ?? "Markdown is supported. Images only from Wikimedia Commons: ![alt](url \"Caption||Photo: Name, licence||Commons file page\"). No HTML."}
         </p>
       </div>
 

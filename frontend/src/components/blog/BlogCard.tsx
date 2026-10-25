@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { CSSProperties } from "react";
 
+import { ClubBadge } from "@/components/ui/ClubBadge";
 import { clubColor } from "@/lib/clubs";
 import { formatDate, plural } from "@/lib/format";
 import type { BlogSummary } from "@/types/api";
@@ -18,7 +19,11 @@ export function BlogCard({ blog, showStatus = false }: { blog: BlogSummary; show
       <div className="min-w-0">
         <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-chalk-dim">
           {blog.club ? (
-            <Link href={`/clubs/${blog.club.slug}`} className="font-semibold text-chalk no-underline hover:underline">
+            <Link
+              href={`/clubs/${blog.club.slug}`}
+              className="flex items-center gap-1.5 font-semibold text-chalk no-underline hover:underline"
+            >
+              <ClubBadge slug={blog.club.slug} size={15} />
               {blog.club.name}
             </Link>
           ) : (

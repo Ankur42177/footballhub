@@ -28,6 +28,16 @@ export function SiteFooter() {
           </a>
         </nav>
       </div>
+      <div className="border-t border-line">
+        <div className="mx-auto flex max-w-6xl flex-col gap-1 px-4 py-4 text-sm text-chalk-dim sm:flex-row sm:justify-between sm:px-6">
+          <p>
+            Designed by <span className="text-chalk">Ankur</span>
+          </p>
+          <p>
+            Handled by <span className="text-chalk">ravenclaw_007 LLC</span>
+          </p>
+        </div>
+      </div>
     </footer>
   );
 }

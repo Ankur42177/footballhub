@@ -6,9 +6,10 @@ import type { CSSProperties } from "react";
 
 import { BlogFeed } from "@/components/blog/BlogFeed";
 import { FollowClubButton } from "@/components/club/FollowClubButton";
+import { ClubBadge } from "@/components/ui/ClubBadge";
 import { pageQuery, withParams } from "@/components/ui/Pagination";
 import { PageSkeleton } from "@/components/ui/Skeletons";
-import { CLUBS, clubColor } from "@/lib/clubs";
+import { CLUBS, clubColor, clubTint } from "@/lib/clubs";
 import { plural } from "@/lib/format";
 import { firstParam, pageParam } from "@/lib/navigation";
 import { getClub, getFeed } from "@/lib/server-api";
@@ -52,11 +53,22 @@ async function ClubContent({
 
   return (
     <>
-      <div className="border-b border-line bg-pitch-deep" style={kit}>
+      <div
+        className="border-b border-line"
+        style={{
+          ...kit,
+          background: `linear-gradient(135deg, color-mix(in srgb, ${clubTint(club.slug)} 38%, var(--color-pitch-deep)) 0%, var(--color-pitch-deep) 70%)`,
+        }}
+      >
         <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
           <div className="kit-stripe pl-5 sm:pl-7">
-            <p className="text-[0.95rem] text-chalk-dim">{club.league}</p>
-            <h1 className="display mt-1 text-5xl sm:text-7xl">{club.name}</h1>
+            <div className="flex items-center gap-4 sm:gap-6">
+              <ClubBadge slug={club.slug} size={64} className="sm:h-[95px] sm:w-[80px]" />
+              <div>
+                <p className="text-[0.95rem] text-chalk-dim">{club.league}</p>
+                <h1 className="display mt-1 text-5xl sm:text-7xl">{club.name}</h1>
+              </div>
+            </div>
             {club.description && <p className="mt-4 max-w-2xl text-lg text-chalk/85">{club.description}</p>}
             <div className="mt-6 flex flex-wrap items-center gap-x-8 gap-y-3">
               <FollowClubButton

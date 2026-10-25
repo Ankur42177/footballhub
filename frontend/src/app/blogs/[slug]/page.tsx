@@ -11,8 +11,9 @@ import { VoteButton } from "@/components/blog/VoteButton";
 import { CommentList } from "@/components/comments/CommentList";
 import { ReportDialog } from "@/components/moderation/ReportDialog";
 import { ArticleSkeleton } from "@/components/ui/Skeletons";
+import { ClubBadge } from "@/components/ui/ClubBadge";
 import { UserAvatar } from "@/components/ui/UserAvatar";
-import { clubColor } from "@/lib/clubs";
+import { clubColor, clubTint } from "@/lib/clubs";
 import { formatDate, siteUrl } from "@/lib/format";
 import { getBlog, getComments, getPublicBlog } from "@/lib/server-api";
 
@@ -90,10 +91,17 @@ async function Article({ params }: { params: Params }) {
         <p className="notice notice-error mb-8">Moderators have hidden this article. Only its author and staff can see it.</p>
       )}
 
-      <header className="kit-stripe pl-5" style={kit}>
+      <header
+        className="kit-stripe -mx-4 rounded-none py-6 pl-9 pr-4 sm:mx-0 sm:rounded-panel sm:py-8 sm:pl-10 sm:pr-8"
+        style={{
+          ...kit,
+          background: `linear-gradient(135deg, color-mix(in srgb, ${clubTint(blog.club?.slug)} 34%, var(--color-pitch)) 0%, var(--color-pitch-raised) 75%)`,
+        }}
+      >
         <p className="text-[0.95rem] text-chalk-dim">
           {blog.club ? (
-            <Link href={`/clubs/${blog.club.slug}`} className="text-chalk">
+            <Link href={`/clubs/${blog.club.slug}`} className="inline-flex items-center gap-2 text-chalk">
+              <ClubBadge slug={blog.club.slug} size={20} />
               {blog.club.name}
             </Link>
           ) : (

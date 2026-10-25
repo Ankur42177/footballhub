@@ -33,8 +33,19 @@ export function SiteHeader() {
           />
         </form>
 
+        <Link
+          href="/search"
+          aria-label="Search articles"
+          className="ml-auto flex h-9 w-9 items-center justify-center rounded-full text-chalk-dim hover:bg-pitch-raised hover:text-chalk sm:hidden"
+        >
+          <svg viewBox="0 0 20 20" className="h-5 w-5" aria-hidden="true" focusable="false">
+            <circle cx="8.5" cy="8.5" r="5.5" fill="none" stroke="currentColor" strokeWidth="2" />
+            <line x1="12.6" y1="12.6" x2="17" y2="17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+          </svg>
+        </Link>
+
         {/* UserMenu reads the pathname, which is request data on dynamic routes. */}
-        <Suspense fallback={<div className="ml-auto h-9 w-28 sm:ml-0" aria-hidden="true" />}>
+        <Suspense fallback={<div className="h-9 w-28" aria-hidden="true" />}>
           <UserMenu />
         </Suspense>
       </div>
