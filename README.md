@@ -233,6 +233,20 @@ Accounts registered with an email listed in `ADMIN_EMAILS` become admins automat
 existing accounts with those emails are promoted when the API restarts. The live site's admin
 is the owner's account (`@ankur`).
 
+## Troubleshooting
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| Every page hangs, Render logs show `password authentication failed for user 'neondb_owner'` | `DATABASE_PASSWORD` on Render doesn't match Neon (often a bad paste, with extra characters or spaces) | Delete the variable on Render, add it again with the password from Neon (**Connect**, then **Show password**), then **Save, rebuild, and deploy** |
+| `DATABASE_URL` errors such as `No suitable driver` | Neon's `postgresql://user:pass@...` string was used | Use the JDBC form `jdbc:postgresql://<host>/<db>?sslmode=require`, with the user and password in their own variables |
+| Pushes to `main` don't redeploy the API | Render's GitHub app isn't installed on the repository | GitHub, then Settings, Applications, Render, Configure: give it access to `footballhub` (or use **Manual Deploy** on Render) |
+| First visit after a quiet spell shows "Warming up the floodlights" | The free Render instance was asleep | Wait about a minute; the page reloads by itself. The keep-awake workflow makes this rare |
+| `/actuator/health/liveness` returns 404 | Health probes are off | `management.endpoint.health.probes.enabled: true` in `application.yml` (already set) |
+| A changed `BACKEND_URL` has no effect | The rewrite reads it at build time | Redeploy the Vercel project |
+
+Render's free plan includes 750 instance hours a month, and one service kept awake all month uses
+about 744 of them. Other free services in the same workspace share that budget.
+
 ## Security notes
 
 - Server-side authorisation on every endpoint; the UI's role checks are hints only.
