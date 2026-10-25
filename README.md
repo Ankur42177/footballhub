@@ -204,13 +204,13 @@ up to a minute to wake, so the first request after a quiet spell is slow (the si
 
 The API runs on Render's free plan: 0.1 of a CPU core and 512 MB of memory. Spring Boot is
 CPU-hungry while it starts, so a plain image took **over 5 minutes** to start on that much
-CPU (measured locally with `docker run --cpus=0.1 --memory=512m`). Three changes fix the
+CPU (measured locally with `docker run --cpus=0.1 --memory=512m`). These changes fix the
 experience:
 
 | Change | Where | Effect |
 |---|---|---|
 | JVM flags for small machines: serial GC, C1-only JIT, one compiler thread, smaller stacks | `backend/Dockerfile` | Startup 5+ min to about 3 min |
-| Class Data Sharing: a training start at build time archives the loaded classes, real starts map the archive | `backend/Dockerfile` | About 3 min to **about 90 s**, using about 300 MB of memory |
+| Java 25 AOT cache: a training start at build time saves loaded and linked classes and method profiles; real starts reuse them (the code still targets Java 21) | `backend/Dockerfile` | About 3 min to **about 56 s** (90 s with Java 21 class data sharing), using under 300 MB of memory |
 | Keep-awake ping every 10 minutes to `/actuator/health/liveness` (doesn't touch the database) | `.github/workflows/keep-warm.yml` | The API rarely sleeps, so visitors don't wait for a cold start |
 | Server-side API calls time out after 12 s; the error page says the server is starting and retries every 10 s | `frontend/src/lib/server-api.ts`, `frontend/src/app/error.tsx` | No more 60-second blank page; the page recovers by itself |
 

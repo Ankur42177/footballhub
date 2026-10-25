@@ -57,6 +57,10 @@ management:
   endpoint:
     health:
       show-details: never
+      # /actuator/health/liveness and /readiness. The keep-warm workflow pings liveness,
+      # which doesn't check the database.
+      probes:
+        enabled: true
 
 springdoc:
   api-docs:
