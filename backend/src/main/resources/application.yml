@@ -28,6 +28,11 @@ spring:
   threads:
     virtual:
       enabled: true
+  jackson:
+    deserialization:
+      # Jackson 3 rejects missing primitive fields by default; treat them as false/0
+      # so optional flags like "publish" can be left out of request bodies.
+      fail-on-null-for-primitives: false
 
 server:
   port: ${PORT:8080}
