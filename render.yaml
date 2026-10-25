@@ -1,0 +1,32 @@
+# Render Blueprint for the FootballHub API (Spring Boot in Docker).
+# Secrets are marked sync: false: Render asks for them when the Blueprint is applied.
+services:
+  - type: web
+    name: footballhub-api
+    runtime: docker
+    rootDir: backend
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    plan: free
+    region: singapore
+    healthCheckPath: /actuator/health
+    autoDeploy: true
+    envVars:
+      # JDBC form, e.g. jdbc:postgresql://<neon-host>/<db>?sslmode=require (use Neon's direct host, not -pooler)
+      - key: DATABASE_URL
+        sync: false
+      - key: DATABASE_USERNAME
+        sync: false
+      - key: DATABASE_PASSWORD
+        sync: false
+      # The Vercel URL, used in email links
+      - key: FRONTEND_URL
+        sync: false
+      - key: ADMIN_EMAILS
+        sync: false
+      - key: COOKIE_SECURE
+        value: "true"
+      - key: API_DOCS_ENABLED
+        value: "false"
+      - key: SEED_DEMO_DATA
+        value: "true"
