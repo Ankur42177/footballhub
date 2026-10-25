@@ -1,26 +1,241 @@
 @import "tailwindcss";
 
+/*
+ * FootballHub design tokens.
+ * Concept: a matchday tactics board. Night-pitch navy surfaces, chalk-white text and
+ * pitch lines, one floodlight-amber accent. Club colours appear only as kit stripes.
+ */
+@theme {
+  --color-pitch: #0e1a2b;
+  --color-pitch-deep: #0a1422;
+  --color-pitch-raised: #15243a;
+  --color-line: #24364f;
+  --color-line-strong: #34507a;
+  --color-chalk: #eceff3;
+  --color-chalk-dim: #9fb0c4;
+  --color-floodlight: #ffd166;
+  --color-floodlight-dim: #e8b84a;
+  --color-danger: #ff8a80;
+  --color-success: #7fd8a6;
+
+  --font-display: "Big Shoulders Display Variable", "Arial Narrow", "Roboto Condensed", sans-serif;
+  --font-serif: "Literata Variable", Georgia, "Times New Roman", serif;
+
+  --radius-chip: 999px;
+  --radius-panel: 6px;
+}
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  color-scheme: dark;
+  --kit: var(--color-line-strong);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  background: var(--color-pitch);
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-pitch);
+  color: var(--color-chalk);
+  font-family: var(--font-serif);
+  font-size: 1.0625rem;
+  line-height: 1.6;
+  font-optical-sizing: auto;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--color-floodlight);
+  color: var(--color-pitch);
+}
+
+:focus-visible {
+  outline: 3px solid var(--color-floodlight);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+a {
+  color: inherit;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+/* Headline type: tall, condensed, stadium-signage. Used as a design element. */
+.display {
+  font-family: var(--font-display);
+  font-weight: 800;
+  line-height: 0.92;
+  letter-spacing: -0.005em;
+  font-variation-settings: "wght" 800;
+  text-wrap: balance;
+}
+
+.display-medium {
+  font-family: var(--font-display);
+  font-weight: 700;
+  line-height: 1;
+  text-wrap: balance;
+}
+
+/* Numbers that should read like a scoreboard. */
+.score {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+/* Thin vertical club stripe, coloured per club via --kit. */
+.kit-stripe {
+  position: relative;
+}
+.kit-stripe::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 4px;
+  background: var(--kit);
+}
+
+/* The pitch-line drawing behind the lead story. */
+.pitch-lines {
+  color: var(--color-chalk);
+  opacity: 0.13;
+  pointer-events: none;
+}
+
+.skeleton {
+  background: linear-gradient(90deg, var(--color-pitch-raised) 0%, #1b2d47 50%, var(--color-pitch-raised) 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+  border-radius: 4px;
+}
+
+@keyframes shimmer {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: -100% 0;
+  }
+}
+
+/* One orchestrated moment: the lead headline settles in on first paint. */
+.lead-enter {
+  animation: lead-enter 700ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+@keyframes lead-enter {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+    letter-spacing: 0.02em;
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lead-enter,
+  .skeleton {
+    animation: none;
+  }
+}
+
+/* Long-form article body rendered from Markdown. */
+.article-body {
+  font-size: 1.1875rem;
+  line-height: 1.75;
+  color: #e3e8ee;
+}
+.article-body > * + * {
+  margin-top: 1.15em;
+}
+.article-body h2 {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 2rem;
+  line-height: 1.05;
+  color: var(--color-chalk);
+  margin-top: 1.8em;
+}
+.article-body h3 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.5rem;
+  line-height: 1.1;
+  margin-top: 1.5em;
+}
+.article-body a {
+  color: var(--color-floodlight);
+}
+.article-body strong {
+  color: var(--color-chalk);
+  font-weight: 650;
+}
+.article-body ul,
+.article-body ol {
+  padding-left: 1.4em;
+}
+.article-body ul {
+  list-style: disc;
+}
+.article-body ol {
+  list-style: decimal;
+}
+.article-body li + li {
+  margin-top: 0.4em;
+}
+.article-body li::marker {
+  color: var(--color-floodlight);
+}
+.article-body blockquote {
+  border-left: 3px solid var(--color-floodlight);
+  padding-left: 1em;
+  color: var(--color-chalk-dim);
+  font-style: italic;
+}
+.article-body code {
+  font-size: 0.9em;
+  background: var(--color-pitch-raised);
+  padding: 0.1em 0.35em;
+  border-radius: 3px;
+}
+.article-body pre {
+  background: var(--color-pitch-deep);
+  border: 1px solid var(--color-line);
+  padding: 1em;
+  overflow-x: auto;
+  border-radius: 4px;
+}
+.article-body pre code {
+  background: none;
+  padding: 0;
+}
+.article-body table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95em;
+}
+.article-body th,
+.article-body td {
+  border-bottom: 1px solid var(--color-line);
+  padding: 0.5em 0.6em;
+  text-align: left;
+}
+.article-body hr {
+  border: 0;
+  border-top: 1px solid var(--color-line);
+}
+
+/* Horizontal club rail: scrolls on small screens without a visible bar. */
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
 }
