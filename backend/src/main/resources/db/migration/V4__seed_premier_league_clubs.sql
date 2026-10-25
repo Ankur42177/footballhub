@@ -1,0 +1,22 @@
+-- Premier League clubs for the 2026-27 season. Names and colours only: no logos or badges.
+INSERT INTO clubs (name, slug, short_name, primary_color, description) VALUES
+    ('Arsenal',                 'arsenal',                 'ARS', '#EF0107', 'The Gunners, from north London.'),
+    ('Aston Villa',             'aston-villa',             'AVL', '#95BFE5', 'The Villans, from Birmingham.'),
+    ('Bournemouth',             'bournemouth',             'BOU', '#DA291C', 'The Cherries, from the south coast.'),
+    ('Brentford',               'brentford',               'BRE', '#E30613', 'The Bees, from west London.'),
+    ('Brighton & Hove Albion',  'brighton-and-hove-albion','BHA', '#0057B8', 'The Seagulls, from the south coast.'),
+    ('Chelsea',                 'chelsea',                 'CHE', '#2B6FD6', 'The Blues, from west London.'),
+    ('Coventry City',           'coventry-city',           'COV', '#59CBE8', 'The Sky Blues, from the West Midlands.'),
+    ('Crystal Palace',          'crystal-palace',          'CRY', '#3D6FD8', 'The Eagles, from south London.'),
+    ('Everton',                 'everton',                 'EVE', '#2A5BD7', 'The Toffees, from Merseyside.'),
+    ('Fulham',                  'fulham',                  'FUL', '#E8E8E8', 'The Cottagers, from west London.'),
+    ('Hull City',               'hull-city',               'HUL', '#F5A12D', 'The Tigers, from East Yorkshire.'),
+    ('Ipswich Town',            'ipswich-town',            'IPS', '#4A7BD0', 'The Tractor Boys, from Suffolk.'),
+    ('Leeds United',            'leeds-united',            'LEE', '#FFCD00', 'The Whites, from West Yorkshire.'),
+    ('Liverpool',               'liverpool',               'LIV', '#C8102E', 'The Reds, from Merseyside.'),
+    ('Manchester City',         'manchester-city',         'MCI', '#6CABDD', 'The Citizens, from Manchester.'),
+    ('Manchester United',       'manchester-united',       'MUN', '#DA291C', 'The Red Devils, from Manchester.'),
+    ('Newcastle United',        'newcastle-united',        'NEW', '#F2F2F2', 'The Magpies, from Tyneside.'),
+    ('Nottingham Forest',       'nottingham-forest',       'NFO', '#DD0000', 'The Reds, from the East Midlands.'),
+    ('Sunderland',              'sunderland',              'SUN', '#EB172B', 'The Black Cats, from Wearside.'),
+    ('Tottenham Hotspur',       'tottenham-hotspur',       'TOT', '#E8E8F0', 'Spurs, from north London.');
