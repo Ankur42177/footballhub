@@ -13,11 +13,11 @@ import remarkGfm from "remark-gfm";
  *
  *   ![Alt text](https://upload.wikimedia.org/... "Caption||Photo: Name, CC BY-SA 4.0||https://commons.wikimedia.org/wiki/File:...")
  */
-const IMAGE_HOST = "https://upload.wikimedia.org/";
+const IMAGE_HOSTS = ["https://upload.wikimedia.org/", "https://thumb.wikimedia.org/"];
 const CREDIT_HOST = "https://commons.wikimedia.org/";
 
 function Figure({ src, alt, title }: { src?: string; alt?: string; title?: string }) {
-  if (typeof src !== "string" || !src.startsWith(IMAGE_HOST)) return null;
+  if (typeof src !== "string" || !IMAGE_HOSTS.some((host) => src.startsWith(host))) return null;
   const [caption, credit, page] = (title ?? "").split("||").map((part) => part.trim());
   const creditLink = page && page.startsWith(CREDIT_HOST) ? page : undefined;
   return (
