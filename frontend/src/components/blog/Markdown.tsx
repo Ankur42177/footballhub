@@ -52,6 +52,12 @@ const components: Components = {
       {children}
     </a>
   ),
+  // Wide tables scroll sideways on phones instead of stretching the page.
+  table: ({ children }) => (
+    <div className="table-scroll">
+      <table>{children}</table>
+    </div>
+  ),
   img: ({ src, alt, title }) => <Figure src={typeof src === "string" ? src : undefined} alt={alt} title={title} />,
   // A paragraph holding only an image becomes a bare <figure> (a figure can't sit inside <p>).
   p: ({ node, children }) => {

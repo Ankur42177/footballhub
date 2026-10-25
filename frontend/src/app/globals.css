@@ -433,3 +433,16 @@ dialog::backdrop {
 .article-body .article-figure-credit a {
   color: inherit;
 }
+
+.table-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.table-scroll table {
+  min-width: 32rem;
+}
+.article-body th {
+  color: var(--color-chalk);
+  font-weight: 650;
+  white-space: nowrap;
+}
