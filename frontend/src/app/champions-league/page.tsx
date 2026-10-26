@@ -2,10 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 
-import { BlogFeed, BlogFeedSkeleton } from "@/components/blog/BlogFeed";
+import { BlogCard } from "@/components/blog/BlogCard";
+import { BlogFeedSkeleton } from "@/components/blog/BlogFeed";
 import { ClubBadge } from "@/components/ui/ClubBadge";
-import { pageQuery, withParams } from "@/components/ui/Pagination";
-import { firstParam, pageParam } from "@/lib/navigation";
 import { getChampionsLeagueFixtures, getFeed } from "@/lib/server-api";
 import type { CupMatch, CupTeam } from "@/types/api";
 
@@ -34,7 +33,7 @@ const kickOffFormat = new Intl.DateTimeFormat("en-GB", {
   timeZone: "Europe/London",
 });
 
-export default function ChampionsLeaguePage(props: PageProps<"/champions-league">) {
+export default function ChampionsLeaguePage() {
   return (
     <div>
       <div className="border-b border-line bg-pitch-deep">
@@ -107,10 +106,13 @@ export default function ChampionsLeaguePage(props: PageProps<"/champions-league"
           <h2 id="stories-title" className="display-medium text-4xl">
             Champions League stories
           </h2>
-          <p className="mt-2 text-chalk-dim">Finals, comebacks, coaches and the tactics behind them.</p>
+          <p className="mt-2 text-chalk-dim">
+            How Premier League clubs won Europe&apos;s biggest prize: the finals, the players who made the difference,
+            the tactics behind each win, and why English clubs find the competition so hard.
+          </p>
           <div className="mt-6">
             <Suspense fallback={<BlogFeedSkeleton rows={3} />}>
-              <Stories searchParams={props.searchParams} />
+              <Stories />
             </Suspense>
           </div>
         </section>
@@ -198,18 +200,23 @@ function TeamName({ team }: { team: CupTeam }) {
   );
 }
 
-async function Stories({ searchParams }: { searchParams: PageProps<"/champions-league">["searchParams"] }) {
-  const params = await searchParams;
-  const page = pageParam(params.page);
-  const sort = firstParam(params.sort) === "latest" ? "latest" : "featured";
-  const feed = await getFeed({ q: "Champions League", sort, page, size: 12 });
+/**
+ * Only stories about Premier League clubs in the Champions League: the winning campaigns,
+ * the players and tactics behind them, and how English clubs fare in Europe. A story
+ * qualifies when its title names the competition, so passing mentions don't count.
+ */
+async function Stories() {
+  const feed = await getFeed({ q: "Champions League", sort: "featured", size: 50 });
+  const stories = feed.content.filter((blog) => /champions league/i.test(blog.title));
+  if (stories.length === 0) return <p className="text-chalk-dim">No Champions League stories yet.</p>;
   return (
-    <BlogFeed
-      page={feed}
-      label="Champions League stories"
-      hrefFor={(target) => withParams("/champions-league", { sort: sort === "latest" ? "latest" : undefined, page: pageQuery(target) })}
-      empty={<p>No Champions League stories yet.</p>}
-    />
+    <ol className="divide-y divide-line border-y border-line" aria-label="Champions League stories">
+      {stories.map((blog) => (
+        <li key={blog.id}>
+          <BlogCard blog={blog} />
+        </li>
+      ))}
+    </ol>
   );
 }
 

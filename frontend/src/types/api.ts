@@ -72,6 +72,8 @@ export interface BlogSummary {
   updatedAt: string;
   votedByMe: boolean;
   bookmarkedByMe: boolean;
+  /** First Wikimedia Commons photo in the article, for photo cards (absent on older API versions). */
+  cover?: { url: string; alt: string } | null;
 }
 
 export interface BlogDetail extends BlogSummary {

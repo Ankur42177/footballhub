@@ -3,6 +3,7 @@ import { Suspense } from "react";
 
 import { BlogFeed, BlogFeedSkeleton } from "@/components/blog/BlogFeed";
 import { FeaturedArticle } from "@/components/blog/FeaturedArticle";
+import { PhotoStoryCard, hasCover } from "@/components/blog/PhotoStoryCard";
 import { pageQuery, withParams } from "@/components/ui/Pagination";
 import { formatDate } from "@/lib/format";
 import { firstParam, pageParam } from "@/lib/navigation";
@@ -10,6 +11,9 @@ import { getFeed } from "@/lib/server-api";
 import type { FeedParams } from "@/lib/server-api";
 
 type Sort = NonNullable<FeedParams["sort"]>;
+
+/** Club whose newest photo stories fill the homepage Spotlight (matches FEATURED_CLUB on the API). */
+const SPOTLIGHT_CLUB = "manchester-city";
 
 // "Featured" is the default: Manchester City articles first, then everything else, each by
 // upvotes (the API's featured sort; the club is set by FEATURED_CLUB on the backend).
@@ -38,13 +42,17 @@ async function HomeContent({ searchParams }: { searchParams: PageProps<"/">["sea
   const page = pageParam(params.page);
   const showLead = sort === "featured" && page === 0;
 
-  const [feed, trending] = await Promise.all([
-    getFeed({ sort, page, size: showLead ? 11 : 10 }),
+  const [feed, trending, clubLatest] = await Promise.all([
+    getFeed({ sort, page, size: showLead ? 15 : 10 }),
     getFeed({ sort: "trending", size: 5 }),
+    showLead ? getFeed({ club: SPOTLIGHT_CLUB, sort: "latest", size: 10 }) : Promise.resolve(null),
   ]);
 
   const lead = showLead ? feed.content[0] : undefined;
-  const rest = lead ? { ...feed, content: feed.content.slice(1) } : feed;
+  // Spotlight: the newest Man City stories with a photo, as photo cards (never the lead story).
+  const spotlight = lead ? (clubLatest?.content ?? []).filter((blog) => blog.id !== lead.id).filter(hasCover).slice(0, 4) : [];
+  const shown = new Set([lead?.id, ...spotlight.map((blog) => blog.id)]);
+  const rest = lead ? { ...feed, content: feed.content.filter((blog) => !shown.has(blog.id)) } : feed;
   const hrefFor = (target: number) => withParams("/", { sort: sort === "featured" ? undefined : sort, page: pageQuery(target) });
 
   return (
@@ -60,6 +68,23 @@ async function HomeContent({ searchParams }: { searchParams: PageProps<"/">["sea
             </h1>
           </div>
         </div>
+      )}
+
+      {spotlight.length > 0 && (
+        <section aria-labelledby="spotlight-title" className="border-b border-line">
+          <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
+            <h2 id="spotlight-title" className="display-medium text-3xl">
+              Spotlight: <span className="text-[#6CABDD]">Manchester City</span>
+            </h2>
+            <ul className="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+              {spotlight.map((blog) => (
+                <li key={blog.id}>
+                  <PhotoStoryCard blog={blog} />
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
       )}
 
       <section aria-labelledby="learn-title" className="border-b border-line bg-pitch-raised">
