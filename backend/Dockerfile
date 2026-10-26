@@ -1,5 +1,5 @@
 # Build: Maven (via the wrapper) on a full JDK 21.
-FROM eclipse-temurin:21-jdk AS build
+FROM eclipse-temurin:25-jdk AS build
 WORKDIR /workspace
 COPY mvnw ./
 COPY .mvn .mvn
