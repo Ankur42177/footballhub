@@ -21,8 +21,9 @@ read an audit log.
   expiring tokens), profile and password settings. Passwords are hashed with Argon2id.
 - **Articles:** Markdown editor with live preview, drafts, publish, archive, delete, edit.
   Collision-safe slugs, reading time, SEO metadata, canonical URLs and JSON-LD.
-- **Community:** one upvote per user per article (enforced by the database, safe under
-  concurrent requests), comments with one level of replies, bookmarks, club follows,
+- **Community:** anyone can upvote, signed in or not: one vote per person per article, enforced
+  by the database (visitors are recognised by a random, HTTP-only `FH_VISITOR` cookie, and
+  votes are rate-limited per IP), comments with one level of replies, bookmarks, club follows,
   and notifications for replies and moderation.
 - **Discovery:** home feed with a lead story, latest, trending and most-upvoted sorts,
   pages for every 2026-27 Premier League club, keyword and club search, author profiles,
