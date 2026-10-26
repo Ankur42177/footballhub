@@ -46,10 +46,18 @@ public class AuthService {
     private final TokenService tokenService;
     private final MailService mailService;
     private final AppProperties properties;
+    private final EmailDomainChecker emailDomains;
+    private final GoogleTokenVerifier google;
+
+    private static final String GOOGLE_NONCE = "footballhub.googleNonce";
+    private static final java.security.SecureRandom RANDOM = new java.security.SecureRandom();
 
     public AuthService(UserRepository users, PasswordEncoder passwordEncoder,
             AuthenticationManager authenticationManager, SecurityContextRepository securityContextRepository,
-            TokenService tokenService, MailService mailService, AppProperties properties) {
+            TokenService tokenService, MailService mailService, AppProperties properties,
+            EmailDomainChecker emailDomains, GoogleTokenVerifier google) {
+        this.emailDomains = emailDomains;
+        this.google = google;
         this.users = users;
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
@@ -72,6 +80,10 @@ public class AuthService {
         }
         if (users.existsByEmail(email)) {
             throw ApiException.conflict("EMAIL_TAKEN", "An account with that email already exists.");
+        }
+        if (properties.checkEmailDomains() && !emailDomains.canReceiveMail(email)) {
+            throw ApiException.badRequest("EMAIL_DOMAIN_INVALID",
+                    "That email address can't receive mail. Check it for typos.");
         }
         User user = new User(username, email, passwordEncoder.encode(request.password()),
                 request.displayName().trim());
@@ -97,9 +109,90 @@ public class AuthService {
             throw new ApiException(HttpStatus.UNAUTHORIZED, "INVALID_CREDENTIALS",
                     "Incorrect username, email or password.");
         }
-        storeAuthentication(authentication, httpRequest, httpResponse);
         AppUserDetails principal = (AppUserDetails) authentication.getPrincipal();
-        return users.findById(principal.getId()).orElseThrow(ApiException::unauthorized);
+        User user = users.findById(principal.getId()).orElseThrow(ApiException::unauthorized);
+        if (properties.requireVerifiedEmailToLogin() && !user.isEmailVerified() && user.getRole() != Role.ADMIN) {
+            sendVerificationEmail(user);
+            throw new ApiException(HttpStatus.FORBIDDEN, "EMAIL_NOT_VERIFIED",
+                    "Please confirm your email address first. We've sent you a new link.");
+        }
+        storeAuthentication(authentication, httpRequest, httpResponse);
+        return user;
+    }
+
+    /**
+     * Starts a Google sign-in: a one-time nonce kept in this browser's session. Google puts it
+     * inside the ID token, so a token obtained anywhere else can't be replayed here.
+     */
+    public java.util.Map<String, String> googleSignInStart(HttpServletRequest httpRequest) {
+        if (!google.enabled()) {
+            throw ApiException.notFound("Google sign-in");
+        }
+        byte[] bytes = new byte[24];
+        RANDOM.nextBytes(bytes);
+        String nonce = java.util.Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
+        httpRequest.getSession(true).setAttribute(GOOGLE_NONCE, nonce);
+        return java.util.Map.of("clientId", properties.google().clientId(), "nonce", nonce);
+    }
+
+    /** Signs in with a verified Google ID token: an existing account by Google ID or email, or a new one. */
+    @Transactional
+    public User loginWithGoogle(String credential, HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
+        HttpSession session = httpRequest.getSession(false);
+        String nonce = session == null ? null : (String) session.getAttribute(GOOGLE_NONCE);
+        if (session != null) {
+            session.removeAttribute(GOOGLE_NONCE);
+        }
+        GoogleTokenVerifier.GoogleIdentity identity = google.verify(credential, nonce);
+
+        User user = users.findByGoogleSubject(identity.subject())
+                .or(() -> users.findByEmail(identity.email()))
+                .orElseGet(() -> newGoogleUser(identity));
+        if (user.getGoogleSubject() == null) {
+            user.setGoogleSubject(identity.subject());
+        }
+        else if (!user.getGoogleSubject().equals(identity.subject())) {
+            throw new ApiException(HttpStatus.CONFLICT, "GOOGLE_ACCOUNT_MISMATCH",
+                    "This email is linked to a different Google account.");
+        }
+        if (!user.isEnabled()) {
+            throw new ApiException(HttpStatus.FORBIDDEN, "ACCOUNT_DISABLED", "This account has been suspended.");
+        }
+        if (!user.isEmailVerified()) {
+            user.setEmailVerifiedAt(java.time.Instant.now());
+        }
+        if (properties.isAdminEmail(user.getEmail()) && user.getRole() != Role.ADMIN) {
+            user.setRole(Role.ADMIN);
+        }
+        users.saveAndFlush(user);
+        signIn(user, httpRequest, httpResponse);
+        return user;
+    }
+
+    private User newGoogleUser(GoogleTokenVerifier.GoogleIdentity identity) {
+        String base = identity.email().substring(0, identity.email().indexOf('@'))
+                .toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9_]", "_").replaceAll("_+", "_");
+        base = base.replaceAll("^_|_$", "");
+        if (base.length() < 3) {
+            base = "fan_" + base;
+        }
+        base = base.length() > 24 ? base.substring(0, 24) : base;
+        String username = base;
+        for (int attempt = 0; RESERVED_USERNAMES.contains(username) || users.existsByUsername(username); attempt++) {
+            username = base + "_" + (attempt < 5 ? String.valueOf(attempt + 2) : Integer.toString(RANDOM.nextInt(100000)));
+        }
+        String name = identity.name() == null || identity.name().isBlank() ? base : identity.name().trim();
+        byte[] secret = new byte[32];
+        RANDOM.nextBytes(secret);
+        // Unusable random password: the account signs in with Google (or resets a password later).
+        User user = new User(username, identity.email(),
+                passwordEncoder.encode(java.util.Base64.getEncoder().encodeToString(secret)),
+                name.length() > 80 ? name.substring(0, 80) : name);
+        user.setEmailVerifiedAt(java.time.Instant.now());
+        if (properties.isAdminEmail(identity.email())) {
+            user.setRole(Role.ADMIN);
+        }
+        return users.saveAndFlush(user);
     }
 
     /** Starts a session for a user who just registered. */

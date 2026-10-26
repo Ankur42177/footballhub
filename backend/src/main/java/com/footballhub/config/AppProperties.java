@@ -19,6 +19,9 @@ public record AppProperties(
         String featuredClub,
         Review review,
         Mail mail,
+        Google google,
+        boolean requireVerifiedEmailToLogin,
+        boolean checkEmailDomains,
         RateLimit rateLimit) {
 
     public AppProperties {
@@ -33,6 +36,7 @@ public record AppProperties(
         featuredClub = featuredClub == null ? "" : featuredClub.trim().toLowerCase(Locale.ROOT);
         review = review == null ? new Review(null, 3, 7) : review;
         mail = mail == null ? new Mail(null, null, false) : mail;
+        google = google == null ? new Google(null) : google;
     }
 
     /**
@@ -86,6 +90,17 @@ public record AppProperties(
         public Mail {
             resendApiKey = resendApiKey == null ? "" : resendApiKey.trim();
             from = from == null || from.isBlank() ? "FootballHub <onboarding@resend.dev>" : from.trim();
+        }
+    }
+
+    /** Google sign-in. The OAuth client ID is public; no client secret is needed or stored. */
+    public record Google(String clientId) {
+        public Google {
+            clientId = clientId == null ? "" : clientId.trim();
+        }
+
+        public boolean enabled() {
+            return !clientId.isEmpty();
         }
     }
 }

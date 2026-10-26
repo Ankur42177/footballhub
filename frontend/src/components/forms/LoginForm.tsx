@@ -6,6 +6,7 @@ import { useState } from "react";
 import type { FormEvent } from "react";
 
 import { Field, FormError } from "@/components/forms/Field";
+import { GoogleSignIn } from "@/components/forms/GoogleSignIn";
 import { useSession } from "@/components/session/SessionProvider";
 import { ApiError, api, errorMessage } from "@/lib/api";
 import type { Me } from "@/types/api";
@@ -42,6 +43,7 @@ export function LoginForm({ next }: { next: string }) {
 
   return (
     <form onSubmit={submit} className="flex flex-col gap-5">
+      <GoogleSignIn next={next} />
       <FormError message={error} />
       <Field
         id="login"

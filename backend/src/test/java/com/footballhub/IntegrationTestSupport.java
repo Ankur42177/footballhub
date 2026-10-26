@@ -25,7 +25,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 /** Shared setup: one PostgreSQL container, a clean database per test, and request helpers. */
 @SpringBootTest(properties = { "app.rate-limit.enabled=false", "app.seed-demo-data=false",
-        "app.review.email=reviewer@example.test", "app.admin-emails=chief@example.test" })
+        "app.review.email=reviewer@example.test", "app.admin-emails=chief@example.test",
+        "app.check-email-domains=false", "app.google.client-id=test-client-id" })
 @AutoConfigureMockMvc
 @Import({ TestcontainersConfiguration.class, CapturingMailConfiguration.class })
 public abstract class IntegrationTestSupport {

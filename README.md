@@ -20,6 +20,8 @@ game. Every story is reviewed by an editor before it goes live.
   for every Premier League club, search and author profiles.
 - **Learn football:** a beginner's guide (positions, the offside rule, fouls and cards, how
   a season works, a glossary) plus a "Football basics" article series.
+- **Accounts:** email and password, or **Sign in with Google**. Sign-up checks that the
+  email's domain can receive mail; confirming the email before logging in can be required.
 - **Moderation:** reports, hiding content, roles, suspensions and an audit log.
 - Works on phones and desktops.
 
@@ -80,6 +82,9 @@ Settings are environment variables on the hosting platform. **Never commit real 
 | `ADMIN_EMAILS` | Accounts with these emails become administrators |
 | `REVIEW_EMAIL` | Where review requests for new stories are sent |
 | `RESEND_API_KEY`, `MAIL_FROM` | Email delivery through Resend; without a key, mail is only logged |
+| `GOOGLE_CLIENT_ID` | Google OAuth web client ID; empty hides "Sign in with Google" |
+| `CHECK_EMAIL_DOMAINS` | Reject sign-ups whose email domain can't receive mail (default on) |
+| `REQUIRE_VERIFIED_EMAIL_TO_LOGIN` | Block password logins until the email is confirmed (admins exempt; default off) |
 | `COOKIE_SECURE` | `true` in production |
 | `FEATURED_CLUB` | Club whose articles lead the homepage's featured feed |
 | `API_DOCS_ENABLED`, `SEED_DEMO_DATA`, `RATE_LIMIT_ENABLED` | Optional switches |
@@ -93,6 +98,8 @@ Settings are environment variables on the hosting platform. **Never commit real 
 
 - All permissions are enforced by the API, never only in the browser.
 - Passwords are hashed with Argon2id. Sessions use HTTP-only, secure cookies with CSRF protection.
+- Google sign-in tokens are verified on the server (signature, issuer, audience, expiry, a
+  one-time nonce and a verified email); no Google client secret is used or stored.
 - Review links are single-use, expire, and are stored only as hashes.
 - Login, sign-up and write requests are rate-limited.
 - User content is rendered without raw HTML, and emails are plain text.

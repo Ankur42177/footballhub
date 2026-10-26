@@ -75,6 +75,14 @@ app:
   # Comma-separated. Accounts registered with these emails become administrators.
   admin-emails: ${ADMIN_EMAILS:}
   require-verified-email-to-publish: ${REQUIRE_VERIFIED_EMAIL:false}
+  # Refuse password logins until the email is confirmed (admins are exempt). Turn on only
+  # when verification emails can reach any address (a verified sending domain).
+  require-verified-email-to-login: ${REQUIRE_VERIFIED_EMAIL_TO_LOGIN:false}
+  # Reject sign-ups whose email domain has no mail (MX) or address records in DNS.
+  check-email-domains: ${CHECK_EMAIL_DOMAINS:true}
+  google:
+    # OAuth 2.0 web client ID from Google Cloud. Empty disables "Sign in with Google".
+    client-id: ${GOOGLE_CLIENT_ID:}
   seed-demo-data: ${SEED_DEMO_DATA:false}
   # The "featured" feed (homepage default) lists this club's articles first, then everything
   # else, each by upvotes. Set to a club slug, or leave empty to rank everything by upvotes.

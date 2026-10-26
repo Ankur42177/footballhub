@@ -33,6 +33,9 @@ public final class AuthDtos {
             @NotBlank @Size(min = 8, max = 128, message = "Use at least 8 characters.") String newPassword) {
     }
 
+    public record GoogleLoginRequest(@NotBlank @Size(max = 4096) String credential) {
+    }
+
     public record VerifyEmailRequest(@NotBlank @Size(max = 200) String token) {
     }
 }

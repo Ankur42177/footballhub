@@ -1,6 +1,7 @@
 package com.footballhub.auth;
 
 import com.footballhub.auth.dto.AuthDtos.ForgotPasswordRequest;
+import com.footballhub.auth.dto.AuthDtos.GoogleLoginRequest;
 import com.footballhub.auth.dto.AuthDtos.LoginRequest;
 import com.footballhub.auth.dto.AuthDtos.RegisterRequest;
 import com.footballhub.auth.dto.AuthDtos.ResetPasswordRequest;
@@ -50,6 +51,17 @@ public class AuthController {
     public MeResponse login(@Valid @RequestBody LoginRequest request, HttpServletRequest httpRequest,
             HttpServletResponse httpResponse) {
         return MeResponse.from(authService.login(request, httpRequest, httpResponse));
+    }
+
+    @GetMapping("/google/start")
+    public java.util.Map<String, String> googleStart(HttpServletRequest httpRequest) {
+        return authService.googleSignInStart(httpRequest);
+    }
+
+    @PostMapping("/google")
+    public MeResponse google(@Valid @RequestBody GoogleLoginRequest request, HttpServletRequest httpRequest,
+            HttpServletResponse httpResponse) {
+        return MeResponse.from(authService.loginWithGoogle(request.credential(), httpRequest, httpResponse));
     }
 
     @PostMapping("/logout")

@@ -6,6 +6,7 @@ import { useState } from "react";
 import type { FormEvent } from "react";
 
 import { Field, FormError } from "@/components/forms/Field";
+import { GoogleSignIn } from "@/components/forms/GoogleSignIn";
 import { useSession } from "@/components/session/SessionProvider";
 import { ApiError, api, errorMessage } from "@/lib/api";
 import { loginHref } from "@/lib/navigation";
@@ -61,8 +62,14 @@ export function RegisterForm({ next }: { next: string }) {
       router.refresh();
     } catch (caught) {
       if (caught instanceof ApiError) {
-        setFieldErrors(caught.fieldErrors);
-        setError(caught.message);
+        const fieldForCode: Record<string, string> = {
+          EMAIL_DOMAIN_INVALID: "email",
+          EMAIL_TAKEN: "email",
+          USERNAME_TAKEN: "username",
+        };
+        const field = fieldForCode[caught.code];
+        setFieldErrors(field ? { ...caught.fieldErrors, [field]: caught.message } : caught.fieldErrors);
+        setError(field ? "Fix the highlighted field." : caught.message);
       } else {
         setError(errorMessage(caught));
       }
@@ -72,6 +79,7 @@ export function RegisterForm({ next }: { next: string }) {
 
   return (
     <form onSubmit={submit} noValidate className="flex flex-col gap-5">
+      <GoogleSignIn next={next} label="signup_with" />
       <FormError message={error} />
       <Field
         id="username"
