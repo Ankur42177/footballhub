@@ -171,6 +171,7 @@ runs everything on each push to `main` and on pull requests.
 | `FRONTEND_URL` | Public site URL, used in email links | `http://localhost:3000` |
 | `ADMIN_EMAILS` | Comma-separated emails that become administrators | empty |
 | `COOKIE_SECURE` | `true` in production (HTTPS-only cookies) | `false` |
+| `FEATURED_CLUB` | Club slug whose articles lead the homepage's "Featured" feed (then everything else, each by upvotes); empty = rank all by upvotes | `manchester-city` |
 | `SEED_DEMO_DATA` | Publish sample articles once on an empty database | `false` |
 | `API_DOCS_ENABLED` | Swagger UI and OpenAPI JSON | `true` |
 | `REQUIRE_VERIFIED_EMAIL` | Block publishing until the email is verified | `false` |
