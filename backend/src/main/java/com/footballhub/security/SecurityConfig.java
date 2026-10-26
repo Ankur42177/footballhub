@@ -60,6 +60,8 @@ public class SecurityConfig {
                         .requestMatchers("/v3/api-docs", "/v3/api-docs/**", "/swagger-ui.html", "/swagger-ui/**")
                         .permitAll()
                         .requestMatchers("/api/v1/auth/**").permitAll()
+                        // Anyone can upvote; guests are identified by a visitor cookie (VoteController).
+                        .requestMatchers("/api/v1/blogs/*/vote").permitAll()
                         .requestMatchers(HttpMethod.GET,
                                 "/api/v1/blogs", "/api/v1/blogs/**",
                                 "/api/v1/clubs", "/api/v1/clubs/**",

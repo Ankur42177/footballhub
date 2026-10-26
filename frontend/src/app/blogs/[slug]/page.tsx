@@ -143,8 +143,8 @@ async function Article({ params }: { params: Params }) {
 
       {live && (
         <div className="mt-12 flex flex-wrap items-center gap-4 border-t border-line pt-6">
-          <VoteButton blogId={blog.id} initialCount={blog.voteCount} initialVoted={blog.votedByMe} returnTo={returnTo} />
-          <p className="text-[0.95rem] text-chalk-dim">Good read? An upvote helps other fans find it.</p>
+          <VoteButton blogId={blog.id} initialCount={blog.voteCount} initialVoted={blog.votedByMe} />
+          <p className="text-[0.95rem] text-chalk-dim">Good read? Upvote it, no account needed. It helps other fans find it.</p>
         </div>
       )}
 

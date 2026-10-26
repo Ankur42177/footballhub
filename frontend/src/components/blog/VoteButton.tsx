@@ -1,34 +1,56 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
-import { useAuthAction } from "@/components/session/useAuthAction";
-import { api } from "@/lib/api";
+import { useSession } from "@/components/session/SessionProvider";
+import { api, errorMessage } from "@/lib/api";
 import type { VoteResult } from "@/types/api";
 
-/** Upvote toggle. The count only changes once the server confirms. */
+/**
+ * Upvote toggle, open to everyone. Signed-in users vote as themselves; other visitors are
+ * remembered by a visitor cookie the API sets, so it's still one vote per person. The count
+ * only changes once the server confirms.
+ */
 export function VoteButton({
   blogId,
   initialCount,
   initialVoted,
-  returnTo,
 }: {
   blogId: number;
   initialCount: number;
   initialVoted: boolean;
-  returnTo: string;
 }) {
+  const { me } = useSession();
   const [count, setCount] = useState(initialCount);
   const [voted, setVoted] = useState(initialVoted);
-  const { run, pending, error } = useAuthAction(returnTo);
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Guests see a cached page, so ask the API for the live count and whether this visitor
+  // already upvoted. Signed-in pages are rendered fresh and already know.
+  useEffect(() => {
+    if (me !== null) return;
+    const controller = new AbortController();
+    api<VoteResult>(`/blogs/${blogId}/vote`, { signal: controller.signal })
+      .then((result) => {
+        setCount(result.voteCount);
+        setVoted(result.voted);
+      })
+      .catch(() => undefined);
+    return () => controller.abort();
+  }, [blogId, me]);
 
   async function toggle() {
-    const result = await run(() =>
-      api<VoteResult>(`/blogs/${blogId}/vote`, { method: voted ? "DELETE" : "POST" }),
-    );
-    if (result) {
+    setPending(true);
+    setError(null);
+    try {
+      const result = await api<VoteResult>(`/blogs/${blogId}/vote`, { method: voted ? "DELETE" : "POST" });
       setCount(result.voteCount);
       setVoted(result.voted);
+    } catch (caught) {
+      setError(errorMessage(caught));
+    } finally {
+      setPending(false);
     }
   }
 
