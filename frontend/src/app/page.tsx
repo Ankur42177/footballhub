@@ -11,14 +11,17 @@ import type { FeedParams } from "@/lib/server-api";
 
 type Sort = NonNullable<FeedParams["sort"]>;
 
+// "Featured" is the default: Manchester City articles first, then everything else, each by
+// upvotes (the API's featured sort; the club is set by FEATURED_CLUB on the backend).
 const SORTS: { value: Sort; label: string }[] = [
+  { value: "featured", label: "Featured" },
   { value: "latest", label: "Latest" },
   { value: "trending", label: "Trending" },
   { value: "top", label: "Most upvoted" },
 ];
 
 function parseSort(value: string | undefined): Sort {
-  return SORTS.some((sort) => sort.value === value) ? (value as Sort) : "latest";
+  return SORTS.some((sort) => sort.value === value) ? (value as Sort) : "featured";
 }
 
 export default function HomePage(props: PageProps<"/">) {
@@ -33,7 +36,7 @@ async function HomeContent({ searchParams }: { searchParams: PageProps<"/">["sea
   const params = await searchParams;
   const sort = parseSort(firstParam(params.sort));
   const page = pageParam(params.page);
-  const showLead = sort === "latest" && page === 0;
+  const showLead = sort === "featured" && page === 0;
 
   const [feed, trending] = await Promise.all([
     getFeed({ sort, page, size: showLead ? 11 : 10 }),
@@ -42,7 +45,7 @@ async function HomeContent({ searchParams }: { searchParams: PageProps<"/">["sea
 
   const lead = showLead ? feed.content[0] : undefined;
   const rest = lead ? { ...feed, content: feed.content.slice(1) } : feed;
-  const hrefFor = (target: number) => withParams("/", { sort: sort === "latest" ? undefined : sort, page: pageQuery(target) });
+  const hrefFor = (target: number) => withParams("/", { sort: sort === "featured" ? undefined : sort, page: pageQuery(target) });
 
   return (
     <>
@@ -53,7 +56,7 @@ async function HomeContent({ searchParams }: { searchParams: PageProps<"/">["sea
         <div className="border-b border-line bg-pitch-deep">
           <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
             <h1 className="display text-5xl sm:text-6xl">
-              {sort === "top" ? "Most upvoted" : sort === "trending" ? "Trending now" : "Latest articles"}
+              {sort === "top" ? "Most upvoted" : sort === "trending" ? "Trending now" : sort === "latest" ? "Latest articles" : "Featured"}
             </h1>
           </div>
         </div>
@@ -79,13 +82,13 @@ async function HomeContent({ searchParams }: { searchParams: PageProps<"/">["sea
         <section aria-labelledby="feed-title">
           <div className="flex flex-wrap items-end justify-between gap-4">
             <h2 id="feed-title" className="display-medium text-3xl">
-              {lead ? "More from the community" : "Articles"}
+              {lead ? "Top picks" : "Articles"}
             </h2>
             <nav aria-label="Sort articles" className="flex gap-1">
               {SORTS.map((option) => (
                 <Link
                   key={option.value}
-                  href={option.value === "latest" ? "/" : `/?sort=${option.value}`}
+                  href={option.value === "featured" ? "/" : `/?sort=${option.value}`}
                   aria-current={option.value === sort ? "page" : undefined}
                   className={`rounded-chip px-3 py-1 text-[0.95rem] no-underline ${
                     option.value === sort ? "bg-chalk text-pitch" : "text-chalk-dim hover:text-chalk"

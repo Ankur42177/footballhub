@@ -78,7 +78,7 @@ export interface FeedParams {
   q?: string;
   club?: string;
   author?: string;
-  sort?: "latest" | "top" | "trending" | "oldest";
+  sort?: "featured" | "latest" | "top" | "trending" | "oldest";
   page?: number;
   size?: number;
 }
