@@ -38,7 +38,9 @@ import org.springframework.transaction.annotation.Transactional;
 public class BlogService {
 
     public enum FeedSort {
-        LATEST, TOP, TRENDING, OLDEST;
+        LATEST, TOP, TRENDING, OLDEST,
+        /** The featured club's articles first, then all others; each group by upvotes, then newest. */
+        FEATURED;
 
         static FeedSort parse(String value) {
             if (value == null || value.isBlank()) {
@@ -48,7 +50,7 @@ public class BlogService {
                 return FeedSort.valueOf(value.trim().toUpperCase(Locale.ROOT));
             }
             catch (IllegalArgumentException ex) {
-                throw ApiException.badRequest("INVALID_SORT", "Sort must be latest, top, trending or oldest.");
+                throw ApiException.badRequest("INVALID_SORT", "Sort must be featured, latest, top, trending or oldest.");
             }
         }
     }
@@ -81,11 +83,14 @@ public class BlogService {
                     Sort.Order.desc("id"));
             case OLDEST -> Sort.by(Sort.Order.asc("publishedAt"), Sort.Order.asc("id"));
             case LATEST -> Sort.by(Sort.Order.desc("publishedAt"), Sort.Order.desc("id"));
+            // Ordered inside the query (the club comparison isn't a plain column sort).
+            case FEATURED -> Sort.unsorted();
         };
         Instant publishedAfter = feedSort == FeedSort.TRENDING ? Instant.now().minus(TRENDING_WINDOW) : null;
+        String featuredClub = feedSort == FeedSort.FEATURED ? properties.featuredClub() : null;
         PageRequest pageable = Pagination.of(page, size, 12, order);
-        Page<Blog> result = blogs.findAll(BlogSpecifications.publicFeed(query, club, author, publishedAfter),
-                pageable);
+        Page<Blog> result = blogs.findAll(
+                BlogSpecifications.publicFeed(query, club, author, publishedAfter, featuredClub), pageable);
         return PageResponse.of(result, mapper.toSummaries(result.getContent(), viewerId(viewer)));
     }
 

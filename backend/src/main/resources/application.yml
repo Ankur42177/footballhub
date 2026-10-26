@@ -76,6 +76,9 @@ app:
   admin-emails: ${ADMIN_EMAILS:}
   require-verified-email-to-publish: ${REQUIRE_VERIFIED_EMAIL:false}
   seed-demo-data: ${SEED_DEMO_DATA:false}
+  # The "featured" feed (homepage default) lists this club's articles first, then everything
+  # else, each by upvotes. Set to a club slug, or leave empty to rank everything by upvotes.
+  featured-club: ${FEATURED_CLUB:manchester-city}
   rate-limit:
     enabled: ${RATE_LIMIT_ENABLED:true}
     auth-per-minute: ${RATE_LIMIT_AUTH_PER_MINUTE:20}

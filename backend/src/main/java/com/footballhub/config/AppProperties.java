@@ -16,6 +16,7 @@ public record AppProperties(
         List<String> adminEmails,
         boolean requireVerifiedEmailToPublish,
         boolean seedDemoData,
+        String featuredClub,
         RateLimit rateLimit) {
 
     public AppProperties {
@@ -27,6 +28,7 @@ public record AppProperties(
         adminEmails = adminEmails == null ? List.of()
                 : adminEmails.stream().map(s -> s.trim().toLowerCase(Locale.ROOT)).filter(s -> !s.isEmpty()).toList();
         rateLimit = rateLimit == null ? new RateLimit(true, 20, 60) : rateLimit;
+        featuredClub = featuredClub == null ? "" : featuredClub.trim().toLowerCase(Locale.ROOT);
     }
 
     /**
