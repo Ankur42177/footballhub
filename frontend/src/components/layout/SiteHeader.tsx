@@ -15,6 +15,9 @@ export function SiteHeader() {
           <Link href="/learn" className="font-semibold text-floodlight no-underline hover:text-chalk">
             Learn football
           </Link>
+          <Link href="/champions-league" className="no-underline hover:text-chalk">
+            Champions League
+          </Link>
           <Link href="/clubs" className="no-underline hover:text-chalk">
             Clubs
           </Link>

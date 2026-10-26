@@ -3,7 +3,17 @@ import "server-only";
 import { cacheLife } from "next/cache";
 import { cookies } from "next/headers";
 
-import type { BlogDetail, BlogSummary, Club, Comment, Me, Notification, Page, PublicProfile } from "@/types/api";
+import type {
+  BlogDetail,
+  BlogSummary,
+  ChampionsLeagueFixtures,
+  Club,
+  Comment,
+  Me,
+  Notification,
+  Page,
+  PublicProfile,
+} from "@/types/api";
 
 /**
  * Server-side reads for Server Components. They call the API directly and forward only the
@@ -128,6 +138,17 @@ export async function getMyClubs(): Promise<Club[]> {
 
 export async function getNotifications(page = 0): Promise<Page<Notification>> {
   return (await backendGet<Page<Notification>>(`/notifications${query({ page, size: 20 })}`)) ?? emptyPage();
+}
+
+export async function getChampionsLeagueFixtures(): Promise<ChampionsLeagueFixtures> {
+  return (
+    (await backendGet<ChampionsLeagueFixtures>("/champions-league/matches", { personalised: false })) ?? {
+      configured: false,
+      updatedAt: null,
+      upcoming: [],
+      recent: [],
+    }
+  );
 }
 
 function emptyPage<T>(): Page<T> {

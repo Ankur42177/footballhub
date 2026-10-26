@@ -68,6 +68,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET,
                                 "/api/v1/blogs", "/api/v1/blogs/**",
                                 "/api/v1/clubs", "/api/v1/clubs/**",
+                                "/api/v1/champions-league/**",
                                 "/api/v1/profiles/**")
                         .permitAll()
                         .requestMatchers("/api/v1/admin/reviews", "/api/v1/admin/reviews/**",

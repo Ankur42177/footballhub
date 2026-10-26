@@ -102,6 +102,31 @@ export interface ReviewPreview {
   linkExpiresAt: string;
 }
 
+export interface CupTeam {
+  name: string;
+  /** Set when the team is a Premier League club. */
+  clubSlug: string | null;
+}
+
+export interface CupMatch {
+  id: number;
+  kickOff: string;
+  status: string;
+  stage: string;
+  matchday: number | null;
+  home: CupTeam;
+  away: CupTeam;
+  homeGoals: number | null;
+  awayGoals: number | null;
+}
+
+export interface ChampionsLeagueFixtures {
+  configured: boolean;
+  updatedAt: string | null;
+  upcoming: CupMatch[];
+  recent: CupMatch[];
+}
+
 export interface ReviewDecision {
   id: number;
   slug: string;

@@ -18,6 +18,8 @@ game. Every story is reviewed by an editor before it goes live.
   replies, bookmarks, club follows and notifications.
 - **Discovery:** a featured homepage feed, latest, trending and most-upvoted sorts, pages
   for every Premier League club, search and author profiles.
+- **Champions League:** upcoming fixtures and recent results for Premier League clubs (from
+  football-data.org), England's winners and every Champions League story.
 - **Learn football:** a beginner's guide (positions, the offside rule, fouls and cards, how
   a season works, a glossary) plus a "Football basics" article series.
 - **Accounts:** email and password, or **Sign in with Google**. Sign-up checks that the
@@ -86,6 +88,7 @@ Settings are environment variables on the hosting platform. **Never commit real 
 | `CHECK_EMAIL_DOMAINS` | Reject sign-ups whose email domain can't receive mail (default on) |
 | `REQUIRE_VERIFIED_EMAIL_TO_LOGIN` | Block password logins until the email is confirmed (admins exempt; default off) |
 | `COOKIE_SECURE` | `true` in production |
+| `FOOTBALL_DATA_API_KEY` | Free football-data.org key for Champions League fixtures; empty hides them |
 | `FEATURED_CLUB` | Club whose articles lead the homepage's featured feed |
 | `API_DOCS_ENABLED`, `SEED_DEMO_DATA`, `RATE_LIMIT_ENABLED` | Optional switches |
 

@@ -17,6 +17,9 @@ export function SiteFooter() {
           <Link href="/learn" className="no-underline hover:text-chalk">
             Learn football
           </Link>
+          <Link href="/champions-league" className="no-underline hover:text-chalk">
+            Champions League
+          </Link>
           <Link href="/clubs" className="no-underline hover:text-chalk">
             All clubs
           </Link>

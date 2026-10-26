@@ -20,6 +20,7 @@ public record AppProperties(
         Review review,
         Mail mail,
         Google google,
+        FootballData footballData,
         boolean requireVerifiedEmailToLogin,
         boolean checkEmailDomains,
         RateLimit rateLimit) {
@@ -37,6 +38,7 @@ public record AppProperties(
         review = review == null ? new Review(null, 3, 7) : review;
         mail = mail == null ? new Mail(null, null, false) : mail;
         google = google == null ? new Google(null) : google;
+        footballData = footballData == null ? new FootballData(null) : footballData;
     }
 
     /**
@@ -101,6 +103,17 @@ public record AppProperties(
 
         public boolean enabled() {
             return !clientId.isEmpty();
+        }
+    }
+
+    /** football-data.org API key for Champions League fixtures and results. Empty = not shown. */
+    public record FootballData(String apiKey) {
+        public FootballData {
+            apiKey = apiKey == null ? "" : apiKey.trim();
+        }
+
+        public boolean enabled() {
+            return !apiKey.isEmpty();
         }
     }
 }
