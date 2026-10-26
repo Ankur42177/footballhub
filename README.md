@@ -224,6 +224,7 @@ experience:
 |---|---|---|
 | JVM flags for small machines: serial GC, C1-only JIT, one compiler thread, smaller stacks | `backend/Dockerfile` | Startup 5+ min to about 3 min |
 | Java 25 AOT cache: a training start at build time saves loaded and linked classes and method profiles; real starts reuse them (the code still targets Java 21) | `backend/Dockerfile` | About 3 min to **about 56 s** (90 s with Java 21 class data sharing), using under 300 MB of memory |
+| Public pages cached with `'use cache: remote'` (fresh 60 s, refreshed in the background, kept 7 days) | `frontend/src/lib/server-api.ts` | Visitors who aren't signed in get pages in about half a second, even while the API sleeps |
 | Keep-awake ping every 10 minutes to `/actuator/health/liveness` (doesn't touch the database) | `.github/workflows/keep-warm.yml` | The API rarely sleeps, so visitors don't wait for a cold start |
 | Server-side API calls time out after 12 s; the error page says the server is starting and retries every 10 s | `frontend/src/lib/server-api.ts`, `frontend/src/app/error.tsx` | No more 60-second blank page; the page recovers by itself |
 
@@ -250,12 +251,18 @@ is the owner's account (`@ankur`).
 
 | Symptom | Cause | Fix |
 |---|---|---|
+| Sign-up, login or any button that saves something says "permission" / 403 in the browser, but works from scripts | The browser sends `Origin: <site URL>`; if that origin isn't allowed, Spring's CORS filter answers "Invalid CORS request" | The site's `FRONTEND_URL` is always allowed (`AppProperties.allowedOrigins()`); make sure `FRONTEND_URL` on Render is exactly the live site URL |
 | Every page hangs, Render logs show `password authentication failed for user 'neondb_owner'` | `DATABASE_PASSWORD` on Render doesn't match Neon (often a bad paste, with extra characters or spaces) | Delete the variable on Render, add it again with the password from Neon (**Connect**, then **Show password**), then **Save, rebuild, and deploy** |
 | `DATABASE_URL` errors such as `No suitable driver` | Neon's `postgresql://user:pass@...` string was used | Use the JDBC form `jdbc:postgresql://<host>/<db>?sslmode=require`, with the user and password in their own variables |
 | Pushes to `main` don't redeploy the API | Render's GitHub app isn't installed on the repository | GitHub, then Settings, Applications, Render, Configure: give it access to `footballhub` (or use **Manual Deploy** on Render) |
 | First visit after a quiet spell shows "Warming up the floodlights" | The free Render instance was asleep | Wait about a minute; the page reloads by itself. The keep-awake workflow makes this rare |
 | `/actuator/health/liveness` returns 404 | Health probes are off | `management.endpoint.health.probes.enabled: true` in `application.yml` (already set) |
 | A changed `BACKEND_URL` has no effect | The rewrite reads it at build time | Redeploy the Vercel project |
+
+GitHub runs scheduled workflows on a best-effort basis: on 25-26 Oct 2026 the 10-minute ping
+ran only about every 2-3 hours, so the API still sleeps between runs. For a dependable
+keep-awake, add a free uptime monitor (for example UptimeRobot, every 5 minutes) on
+`/actuator/health/liveness`, or move the API to Render's Starter plan, which never sleeps.
 
 Render's free plan includes 750 instance hours a month, and one service kept awake all month uses
 about 744 of them. Other free services in the same workspace share that budget.
