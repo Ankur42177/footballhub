@@ -97,13 +97,16 @@ public class SecurityConfig {
     }
 
     /**
-     * In production the browser calls the API through the frontend's own origin (Vercel
-     * rewrites), so CORS is not needed. Origins listed here may call the API directly.
+     * The browser calls the API through the frontend's /api/v1 rewrite, but the request still
+     * carries the browser's Origin header (the site's address), which differs from the API's
+     * host. So the site's own URL must be an allowed origin, or every POST/PUT/DELETE from a
+     * browser is rejected with 403 "Invalid CORS request". AppProperties.allowedOrigins()
+     * always includes FRONTEND_URL; CORS_ALLOWED_ORIGINS can add more.
      */
     @Bean
     public CorsConfigurationSource corsConfigurationSource(AppProperties properties) {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(properties.corsAllowedOrigins());
+        config.setAllowedOrigins(properties.allowedOrigins());
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("Content-Type", "Accept", "X-XSRF-TOKEN"));
         config.setAllowCredentials(true);

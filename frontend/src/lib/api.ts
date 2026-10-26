@@ -21,7 +21,7 @@ export class ApiError extends Error {
 
 function defaultMessage(status: number): string {
   if (status === 401) return "Please log in to continue.";
-  if (status === 403) return "You don't have permission to do that.";
+  if (status === 403) return "The server refused this request. Refresh the page and try again.";
   if (status === 404) return "That page or item doesn't exist.";
   if (status === 429) return "Too many requests. Wait a moment and try again.";
   if (status >= 500) return "The server had a problem. Try again in a minute.";

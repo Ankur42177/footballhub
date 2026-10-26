@@ -29,6 +29,18 @@ public record AppProperties(
         rateLimit = rateLimit == null ? new RateLimit(true, 20, 60) : rateLimit;
     }
 
+    /**
+     * Origins the browser may call the API from. The site itself (frontendUrl) is always
+     * included: requests reach the API through the frontend's /api/v1 rewrite, so the browser's
+     * Origin header is the site's address even though the API runs on another host.
+     */
+    public List<String> allowedOrigins() {
+        return java.util.stream.Stream.concat(java.util.stream.Stream.of(frontendUrl), corsAllowedOrigins.stream())
+                .map(AppProperties::stripTrailingSlash)
+                .distinct()
+                .toList();
+    }
+
     public boolean isAdminEmail(String email) {
         return email != null && adminEmails.contains(email.trim().toLowerCase(Locale.ROOT));
     }

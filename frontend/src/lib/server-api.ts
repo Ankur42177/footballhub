@@ -1,14 +1,19 @@
 import "server-only";
 
+import { cacheLife } from "next/cache";
 import { cookies } from "next/headers";
 
 import type { BlogDetail, BlogSummary, Club, Comment, Me, Notification, Page, PublicProfile } from "@/types/api";
 
 /**
- * Server-side reads for Server Components. They call the API directly and forward
- * only the visitor's session cookie, so responses are personalised (drafts for their
- * author, "voted by me", and so on). Every caller must sit inside a <Suspense>
- * boundary because reading cookies is request-time data.
+ * Server-side reads for Server Components. They call the API directly and forward only the
+ * visitor's session cookie, so signed-in visitors get personalised responses (their drafts,
+ * "voted by me", and so on). Every caller must sit inside a <Suspense> boundary because
+ * reading cookies is request-time data.
+ *
+ * Visitors who aren't signed in get the same data as everyone else, so those reads go
+ * through a shared remote cache ('use cache: remote'): pages load from the cache instantly
+ * and the cache refreshes in the background, even while the free-plan API is asleep.
  */
 
 const BACKEND_URL = (process.env.BACKEND_URL ?? "http://localhost:8080").replace(/\/$/, "");
@@ -18,11 +23,23 @@ const TIMEOUT_MS = 12_000;
 export class BackendUnavailableError extends Error {}
 
 async function backendGet<T>(path: string, { personalised = true } = {}): Promise<T | null> {
+  const session = personalised ? (await cookies()).get("SESSION") : undefined;
+  if (!session) return publicGet<T>(path);
+  return fetchFromApi<T>(path, `SESSION=${session.value}`);
+}
+
+/** Anonymous reads, shared by every visitor: serve cached data, refresh in the background. */
+async function publicGet<T>(path: string): Promise<T | null> {
+  "use cache: remote";
+  // Fresh for a minute, then served stale while refreshing; kept for a week, so a sleeping
+  // API never blanks a page that has been viewed before.
+  cacheLife({ stale: 60, revalidate: 60, expire: 60 * 60 * 24 * 7 });
+  return fetchFromApi<T>(path);
+}
+
+async function fetchFromApi<T>(path: string, cookie?: string): Promise<T | null> {
   const headers: Record<string, string> = { Accept: "application/json" };
-  if (personalised) {
-    const session = (await cookies()).get("SESSION");
-    if (session) headers.Cookie = `SESSION=${session.value}`;
-  }
+  if (cookie) headers.Cookie = cookie;
 
   let response: Response;
   try {
