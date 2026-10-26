@@ -1,7 +1,7 @@
 /** Response and request contracts mirroring the Spring Boot DTOs. */
 
 export type Role = "USER" | "MODERATOR" | "ADMIN";
-export type BlogStatus = "DRAFT" | "PUBLISHED" | "ARCHIVED";
+export type BlogStatus = "DRAFT" | "PENDING_REVIEW" | "PUBLISHED" | "REJECTED" | "ARCHIVED";
 export type CommentStatus = "VISIBLE" | "HIDDEN" | "REMOVED";
 export type ReportStatus = "OPEN" | "REVIEWING" | "RESOLVED" | "DISMISSED";
 export type NotificationType = "COMMENT_ON_BLOG" | "REPLY_TO_COMMENT" | "MODERATION";
@@ -77,6 +77,35 @@ export interface BlogSummary {
 export interface BlogDetail extends BlogSummary {
   content: string;
   canEdit: boolean;
+  /** The reviewer's note when a story wasn't approved; only sent to its author and admins. */
+  reviewNote: string | null;
+}
+
+export interface PendingReview {
+  id: number;
+  title: string;
+  slug: string;
+  excerpt: string | null;
+  author: AuthorSummary;
+  club: ClubSummary | null;
+  submittedAt: string;
+}
+
+export interface ReviewPreview {
+  id: number;
+  title: string;
+  excerpt: string | null;
+  content: string;
+  author: AuthorSummary;
+  club: ClubSummary | null;
+  submittedAt: string;
+  linkExpiresAt: string;
+}
+
+export interface ReviewDecision {
+  id: number;
+  slug: string;
+  status: BlogStatus;
 }
 
 export interface Comment {

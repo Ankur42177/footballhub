@@ -8,21 +8,27 @@ import { useAuthAction } from "@/components/session/useAuthAction";
 import { api } from "@/lib/api";
 import type { BlogDetail, BlogStatus } from "@/types/api";
 
-/** Edit, publish, archive and delete controls shown to the author (and admins). */
+/**
+ * Controls for the author and for admins. Only admins publish directly; other authors
+ * submit for review (the API enforces this, the labels just explain it).
+ */
 export function ArticleOwnerActions({
   blogId,
   slug,
   status,
   authorUsername,
+  reviewNote,
 }: {
   blogId: number;
   slug: string;
   status: BlogStatus;
   authorUsername: string;
+  reviewNote: string | null;
 }) {
   const router = useRouter();
   const { me } = useSession();
   const isAuthor = !me || me.username === authorUsername;
+  const isAdmin = me?.role === "ADMIN";
   const { run, pending, error } = useAuthAction(`/blogs/${slug}`);
 
   async function changeStatus(action: "publish" | "archive") {
@@ -38,29 +44,35 @@ export function ArticleOwnerActions({
       return true;
     });
     if (removed) {
-      router.push("/dashboard");
+      router.push(isAdmin && !isAuthor ? "/admin" : "/dashboard");
       router.refresh();
     }
   }
 
+  const message: Record<BlogStatus, string> = {
+    DRAFT: isAuthor ? "This is a draft. Only you can see it." : "Draft by another author (admin view).",
+    PENDING_REVIEW: isAdmin
+      ? "This story is waiting for review. Approve it here or from the admin page."
+      : "Sent for review. It will appear on the site once an editor approves it.",
+    PUBLISHED: isAuthor ? "You wrote this article." : "Admin controls for this article.",
+    REJECTED: "This story wasn't approved." + (reviewNote ? ` Editor's note: ${reviewNote}` : "") + " Edit it and submit again.",
+    ARCHIVED: isAuthor ? "This article is archived. It's hidden from feeds." : "Archived by its author (admin view).",
+  };
+  const canEdit = isAdmin || status !== "PENDING_REVIEW";
+  const publishLabel = isAdmin ? (status === "PENDING_REVIEW" ? "Approve and publish" : "Publish") : "Submit for review";
+
   return (
-    <div className="notice flex flex-col gap-3">
-      <p className="text-chalk-dim">
-        {status === "DRAFT" &&
-          (isAuthor ? "This is a draft. Only you and the moderators can see it." : "Draft by another author (admin view).")}
-        {status === "ARCHIVED" &&
-          (isAuthor
-            ? "This article is archived. It's hidden from feeds and only you can open it."
-            : "Archived by its author (admin view).")}
-        {status === "PUBLISHED" && (isAuthor ? "You wrote this article." : "Admin controls for this article.")}
-      </p>
+    <div className={`notice flex flex-col gap-3 ${status === "REJECTED" ? "notice-error" : ""}`}>
+      <p className="text-chalk-dim">{message[status]}</p>
       <div className="flex flex-wrap gap-2">
-        <Link href={`/write?edit=${encodeURIComponent(slug)}`} className="btn btn-secondary btn-small">
-          Edit
-        </Link>
-        {status !== "PUBLISHED" && (
+        {canEdit && (
+          <Link href={`/write?edit=${encodeURIComponent(slug)}`} className="btn btn-secondary btn-small">
+            Edit
+          </Link>
+        )}
+        {status !== "PUBLISHED" && (status !== "PENDING_REVIEW" || isAdmin) && (
           <button type="button" onClick={() => changeStatus("publish")} disabled={pending} className="btn btn-primary btn-small">
-            Publish
+            {publishLabel}
           </button>
         )}
         {status === "PUBLISHED" && (

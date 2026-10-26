@@ -6,6 +6,14 @@ import { clubColor } from "@/lib/clubs";
 import { formatDate, plural } from "@/lib/format";
 import type { BlogSummary } from "@/types/api";
 
+const STATUS_TAG: Record<BlogSummary["status"], { label: string; className: string }> = {
+  DRAFT: { label: "Draft", className: "tag tag-warn" },
+  PENDING_REVIEW: { label: "Awaiting review", className: "tag tag-warn" },
+  PUBLISHED: { label: "Published", className: "tag" },
+  REJECTED: { label: "Not approved", className: "tag tag-danger" },
+  ARCHIVED: { label: "Archived", className: "tag" },
+};
+
 /**
  * One row in a feed: club stripe on the left, headline and byline in the middle,
  * the upvote total on the right like a scoreboard figure.
@@ -30,9 +38,7 @@ export function BlogCard({ blog, showStatus = false }: { blog: BlogSummary; show
             <span>General</span>
           )}
           {showStatus && blog.status !== "PUBLISHED" && (
-            <span className={blog.status === "DRAFT" ? "tag tag-warn" : "tag"}>
-              {blog.status === "DRAFT" ? "Draft" : "Archived"}
-            </span>
+            <span className={STATUS_TAG[blog.status].className}>{STATUS_TAG[blog.status].label}</span>
           )}
           {blog.hidden && <span className="tag tag-danger">Hidden by moderators</span>}
         </p>

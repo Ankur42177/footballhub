@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 
 import { AdminModerationTable } from "@/components/admin/AdminModerationTable";
+import { AdminReviewQueue } from "@/components/admin/AdminReviewQueue";
 import { AdminUsersTable, AuditLogTable } from "@/components/admin/AdminUsersTable";
 import { PageSkeleton } from "@/components/ui/Skeletons";
 import { isStaffRole, requireMe } from "@/lib/auth";
@@ -42,6 +43,7 @@ async function Admin({ searchParams }: { searchParams: PageProps<"/admin">["sear
     { value: "reports", label: "Reports" },
     ...(isAdmin
       ? [
+          { value: "reviews", label: "Awaiting review" },
           { value: "users", label: "Users" },
           { value: "audit", label: "Audit log" },
         ]
@@ -71,6 +73,7 @@ async function Admin({ searchParams }: { searchParams: PageProps<"/admin">["sear
       </nav>
       <div className="mt-6">
         {tab === "reports" && <AdminModerationTable />}
+        {tab === "reviews" && <AdminReviewQueue />}
         {tab === "users" && <AdminUsersTable currentUserId={me.id} />}
         {tab === "audit" && <AuditLogTable />}
       </div>

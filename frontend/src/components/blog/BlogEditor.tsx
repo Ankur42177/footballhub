@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
 
 import { Markdown } from "@/components/blog/Markdown";
+import { useSession } from "@/components/session/SessionProvider";
 import { ApiError, api, errorMessage } from "@/lib/api";
 import type { BlogDetail, BlogInput, Club } from "@/types/api";
 
@@ -19,6 +20,8 @@ type Intent = "draft" | "publish";
  */
 export function BlogEditor({ clubs, existing }: { clubs: Pick<Club, "id" | "name">[]; existing?: BlogDetail }) {
   const router = useRouter();
+  const { me } = useSession();
+  const isAdmin = me?.role === "ADMIN";
   const [values, setValues] = useState<BlogInput>({
     title: existing?.title ?? "",
     excerpt: existing?.excerpt ?? "",
@@ -223,6 +226,14 @@ export function BlogEditor({ clubs, existing }: { clubs: Pick<Club, "id" | "name
         </p>
       </div>
 
+      {!isAdmin && (
+        <p className="hint">
+          {published
+            ? "Changes to a published story are reviewed by an editor before they go live again."
+            : "An editor reviews every story before it's published. You'll get a notification with the decision."}
+        </p>
+      )}
+
       {error && (
         <p role="alert" className="notice notice-error">
           {error}
@@ -237,7 +248,7 @@ export function BlogEditor({ clubs, existing }: { clubs: Pick<Club, "id" | "name
         ) : (
           <>
             <button type="button" onClick={() => save("publish")} disabled={pending !== null} className="btn btn-primary">
-              {pending === "publish" ? "Publishing…" : "Publish"}
+              {pending === "publish" ? (isAdmin ? "Publishing…" : "Submitting…") : isAdmin ? "Publish" : "Submit for review"}
             </button>
             <button type="submit" disabled={pending !== null} className="btn btn-secondary">
               {pending === "draft" ? "Saving…" : existing ? "Save draft" : "Save as draft"}

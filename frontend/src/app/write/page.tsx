@@ -33,9 +33,11 @@ async function WriteContent({ searchParams }: { searchParams: PageProps<"/write"
       <p className="mt-3 text-chalk-dim">
         {existing
           ? existing.status === "PUBLISHED"
-            ? "Changes go live as soon as you save. The address of the article stays the same."
-            : "Still a draft. Publish when it's ready."
-          : `Writing as ${me.displayName}. Save a draft at any time; nobody else sees it until you publish.`}
+            ? me.role === "ADMIN"
+              ? "Changes go live as soon as you save. The address of the article stays the same."
+              : "Saving sends your changes to an editor for review; the story is hidden until it's approved."
+            : "Not published yet. Submit it when it's ready."
+          : `Writing as ${me.displayName}. Save a draft at any time; nobody else sees it until it's published.`}
       </p>
       {!me.emailVerified && (
         <p className="notice mt-6">

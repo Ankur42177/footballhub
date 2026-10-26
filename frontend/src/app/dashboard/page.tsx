@@ -19,6 +19,8 @@ export const metadata: Metadata = {
 const TABS = [
   { value: undefined, label: "All" },
   { value: "draft", label: "Drafts" },
+  { value: "pending_review", label: "Awaiting review" },
+  { value: "rejected", label: "Not approved" },
   { value: "published", label: "Published" },
   { value: "archived", label: "Archived" },
 ] as const;
