@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.footballhub.blog.dto.BlogDtos;
 import com.footballhub.blog.dto.BlogDtos.BlogDetailResponse;
 import com.footballhub.blog.dto.BlogDtos.BlogSummaryResponse;
 import com.footballhub.club.dto.ClubDtos.ClubSummary;
@@ -33,7 +34,20 @@ public class BlogMapper {
                 blog.getExcerpt(), AuthorSummary.from(blog.getAuthor()), ClubSummary.from(blog.getClub()),
                 blog.getStatus(), blog.isHidden(), blog.getVoteCount(), comments.getOrDefault(blog.getId(), 0L),
                 readingMinutes(blog.getContent()), blog.getPublishedAt(), blog.getCreatedAt(),
-                blog.getUpdatedAt(), voted.contains(blog.getId()), bookmarked.contains(blog.getId()))).toList();
+                blog.getUpdatedAt(), voted.contains(blog.getId()), bookmarked.contains(blog.getId()),
+                coverOf(blog.getContent()))).toList();
+    }
+
+    /** Same rule as the frontend renderer: only images hosted by Wikimedia Commons count. */
+    private static final java.util.regex.Pattern COVER = java.util.regex.Pattern.compile(
+            "!\\[([^\\]\\n]{0,300})]\\((https://(?:upload|thumb)\\.wikimedia\\.org/[^\\s)\"]{1,600})");
+
+    static BlogDtos.CoverImage coverOf(String content) {
+        if (content == null) {
+            return null;
+        }
+        java.util.regex.Matcher matcher = COVER.matcher(content);
+        return matcher.find() ? new BlogDtos.CoverImage(matcher.group(2), matcher.group(1).trim()) : null;
     }
 
     public BlogDetailResponse toDetail(Blog blog, Long viewerId, Role viewerRole) {

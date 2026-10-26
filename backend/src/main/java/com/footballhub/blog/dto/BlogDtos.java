@@ -35,7 +35,11 @@ public final class BlogDtos {
     public record BlogSummaryResponse(Long id, String title, String slug, String excerpt, AuthorSummary author,
             ClubSummary club, BlogStatus status, boolean hidden, int voteCount, long commentCount,
             int readingMinutes, Instant publishedAt, Instant createdAt, Instant updatedAt, boolean votedByMe,
-            boolean bookmarkedByMe) {
+            boolean bookmarkedByMe, CoverImage cover) {
+    }
+
+    /** The article's first (Wikimedia Commons) photo, for photo cards; null when it has none. */
+    public record CoverImage(String url, String alt) {
     }
 
     /** Full article. {@code canEdit} is a UI hint only; the server enforces ownership. */
