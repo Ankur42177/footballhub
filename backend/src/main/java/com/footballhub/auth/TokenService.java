@@ -56,7 +56,7 @@ public class TokenService {
         return token.getUser();
     }
 
-    static String hash(String raw) {
+    public static String hash(String raw) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
             return HexFormat.of().formatHex(digest.digest(raw.getBytes(StandardCharsets.UTF_8)));

@@ -87,7 +87,8 @@ class CommunityIntegrationTest extends IntegrationTestSupport {
 
     private Integer notificationsFor(String username) {
         return jdbc.queryForObject(
-                "SELECT COUNT(*) FROM notifications n JOIN users u ON u.id = n.user_id WHERE u.username = ?",
+                "SELECT COUNT(*) FROM notifications n JOIN users u ON u.id = n.user_id WHERE u.username = ?"
+                        + " AND n.type IN ('COMMENT_ON_BLOG', 'REPLY_TO_COMMENT')",
                 Integer.class, username);
     }
 

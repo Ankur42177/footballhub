@@ -62,12 +62,16 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/auth/**").permitAll()
                         // Anyone can upvote; guests are identified by a visitor cookie (VoteController).
                         .requestMatchers("/api/v1/blogs/*/vote").permitAll()
+                        // Review links: the single-use token in the request body is the credential.
+                        .requestMatchers(HttpMethod.POST, "/api/v1/reviews/preview", "/api/v1/reviews/approve",
+                                "/api/v1/reviews/reject").permitAll()
                         .requestMatchers(HttpMethod.GET,
                                 "/api/v1/blogs", "/api/v1/blogs/**",
                                 "/api/v1/clubs", "/api/v1/clubs/**",
                                 "/api/v1/profiles/**")
                         .permitAll()
-                        .requestMatchers("/api/v1/admin/users", "/api/v1/admin/users/**",
+                        .requestMatchers("/api/v1/admin/reviews", "/api/v1/admin/reviews/**",
+                                "/api/v1/admin/users", "/api/v1/admin/users/**",
                                 "/api/v1/admin/audit-logs", "/api/v1/admin/audit-logs/**")
                         .hasRole("ADMIN")
                         .requestMatchers("/api/v1/admin/**").hasAnyRole("MODERATOR", "ADMIN")

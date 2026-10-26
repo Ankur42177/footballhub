@@ -18,14 +18,16 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /** Shared setup: one PostgreSQL container, a clean database per test, and request helpers. */
-@SpringBootTest(properties = { "app.rate-limit.enabled=false", "app.seed-demo-data=false" })
+@SpringBootTest(properties = { "app.rate-limit.enabled=false", "app.seed-demo-data=false",
+        "app.review.email=reviewer@example.test", "app.admin-emails=chief@example.test" })
 @AutoConfigureMockMvc
-@Import(TestcontainersConfiguration.class)
+@Import({ TestcontainersConfiguration.class, CapturingMailConfiguration.class })
 public abstract class IntegrationTestSupport {
 
     protected static final String PASSWORD = "correct-horse-42";
@@ -68,6 +70,11 @@ public abstract class IntegrationTestSupport {
     }
 
     /** Creates a blog through the API and returns the JSON response body. */
+    /**
+     * Creates a story by {@code author}. With publish=true it goes through the real editorial
+     * flow: submitted for review (non-admins can't publish directly), then approved by an admin,
+     * and the published article's JSON is returned.
+     */
     protected String createBlog(AppUserDetails author, String title, boolean publish) throws Exception {
         String body = """
                 {"title": "%s", "excerpt": "Short summary", "content": "A long enough body about tactics.",
@@ -77,7 +84,24 @@ public abstract class IntegrationTestSupport {
                 .contentType(MediaType.APPLICATION_JSON).content(body))
                 .andExpect(status().isCreated())
                 .andReturn();
-        return result.getResponse().getContentAsString();
+        String created = result.getResponse().getContentAsString();
+        if (!publish || "PUBLISHED".equals(JsonPath.read(created, "$.status"))) {
+            return created;
+        }
+        mvc.perform(post("/api/v1/admin/reviews/" + idOf(created) + "/approve").with(user(editor())).with(csrf()))
+                .andExpect(status().isOk());
+        return mvc.perform(get("/api/v1/blogs/" + slugOf(created)).with(user(author)))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+    }
+
+    private AppUserDetails editor;
+
+    /** An administrator for approving stories in tests. */
+    protected AppUserDetails editor() {
+        if (editor == null || userRepository.findById(editor.getId()).isEmpty()) {
+            editor = createUser("chief_editor_" + System.nanoTime() % 1_000_000, Role.ADMIN);
+        }
+        return editor;
     }
 
     protected static long idOf(String json) {

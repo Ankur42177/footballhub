@@ -70,6 +70,19 @@ public class Blog {
     @Column(name = "published_at")
     private Instant publishedAt;
 
+    @Column(name = "submitted_at")
+    private Instant submittedAt;
+
+    /** SHA-256 of the single-use review link token; the raw token only ever exists in the email. */
+    @Column(name = "review_token_hash", length = 64)
+    private String reviewTokenHash;
+
+    @Column(name = "review_token_expires_at")
+    private Instant reviewTokenExpiresAt;
+
+    @Column(name = "review_note", length = 500)
+    private String reviewNote;
+
     protected Blog() {
     }
 
@@ -99,6 +112,44 @@ public class Blog {
         if (this.publishedAt == null) {
             this.publishedAt = Instant.now();
         }
+    }
+
+    /** Waits for an editor's approval; any earlier review link stops working. */
+    public void submitForReview(String tokenHash, Instant tokenExpiresAt) {
+        this.status = BlogStatus.PENDING_REVIEW;
+        this.submittedAt = Instant.now();
+        this.reviewTokenHash = tokenHash;
+        this.reviewTokenExpiresAt = tokenExpiresAt;
+        this.reviewNote = null;
+    }
+
+    public void approve() {
+        clearReviewToken();
+        this.reviewNote = null;
+        publish();
+    }
+
+    public void reject(String note) {
+        clearReviewToken();
+        this.status = BlogStatus.REJECTED;
+        this.reviewNote = note;
+    }
+
+    private void clearReviewToken() {
+        this.reviewTokenHash = null;
+        this.reviewTokenExpiresAt = null;
+    }
+
+    public Instant getSubmittedAt() {
+        return submittedAt;
+    }
+
+    public Instant getReviewTokenExpiresAt() {
+        return reviewTokenExpiresAt;
+    }
+
+    public String getReviewNote() {
+        return reviewNote;
     }
 
     public void archive() {

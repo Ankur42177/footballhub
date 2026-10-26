@@ -42,10 +42,15 @@ class BlogIntegrationTest extends IntegrationTestSupport {
                 .andExpect(jsonPath("$.status").value("DRAFT"))
                 .andExpect(jsonPath("$.canEdit").value(true));
 
+        // A non-admin "publish" sends the story to review; it stays private until approved.
         mvc.perform(post("/api/v1/blogs/" + id + "/publish").with(user(author)).with(csrf()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("PUBLISHED"))
-                .andExpect(jsonPath("$.publishedAt").isNotEmpty());
+                .andExpect(jsonPath("$.status").value("PENDING_REVIEW"));
+        mvc.perform(get("/api/v1/blogs/" + slug)).andExpect(status().isNotFound());
+
+        mvc.perform(post("/api/v1/admin/reviews/" + id + "/approve").with(user(editor())).with(csrf()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("PUBLISHED"));
 
         mvc.perform(get("/api/v1/blogs/" + slug))
                 .andExpect(status().isOk())

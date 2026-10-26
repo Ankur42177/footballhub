@@ -46,7 +46,9 @@ public class BlogMapper {
         return new BlogDetailResponse(blog.getId(), blog.getTitle(), blog.getSlug(), blog.getExcerpt(),
                 blog.getContent(), AuthorSummary.from(blog.getAuthor()), ClubSummary.from(blog.getClub()),
                 blog.getStatus(), blog.isHidden(), blog.getVoteCount(), comments, readingMinutes(blog.getContent()),
-                blog.getPublishedAt(), blog.getCreatedAt(), blog.getUpdatedAt(), voted, bookmarked, canEdit);
+                blog.getPublishedAt(), blog.getCreatedAt(), blog.getUpdatedAt(), voted, bookmarked, canEdit,
+                // The reviewer's note is shown to the author (and admins) only.
+                canEdit ? blog.getReviewNote() : null);
     }
 
     static int readingMinutes(String content) {

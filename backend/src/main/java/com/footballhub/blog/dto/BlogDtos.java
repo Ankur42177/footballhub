@@ -42,6 +42,6 @@ public final class BlogDtos {
     public record BlogDetailResponse(Long id, String title, String slug, String excerpt, String content,
             AuthorSummary author, ClubSummary club, BlogStatus status, boolean hidden, int voteCount,
             long commentCount, int readingMinutes, Instant publishedAt, Instant createdAt, Instant updatedAt,
-            boolean votedByMe, boolean bookmarkedByMe, boolean canEdit) {
+            boolean votedByMe, boolean bookmarkedByMe, boolean canEdit, String reviewNote) {
     }
 }

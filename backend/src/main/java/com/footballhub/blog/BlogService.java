@@ -16,6 +16,7 @@ import com.footballhub.common.util.Pagination;
 import com.footballhub.common.util.Slugs;
 import com.footballhub.config.AppProperties;
 import com.footballhub.moderation.AuditService;
+import com.footballhub.review.ReviewService;
 import com.footballhub.security.AppUserDetails;
 import com.footballhub.security.CurrentUser;
 import com.footballhub.user.Role;
@@ -63,9 +64,11 @@ public class BlogService {
     private final CurrentUser currentUser;
     private final AuditService auditService;
     private final AppProperties properties;
+    private final ReviewService reviews;
 
     public BlogService(BlogRepository blogs, ClubRepository clubs, BlogMapper mapper, CurrentUser currentUser,
-            AuditService auditService, AppProperties properties) {
+            AuditService auditService, AppProperties properties, ReviewService reviews) {
+        this.reviews = reviews;
         this.blogs = blogs;
         this.clubs = clubs;
         this.mapper = mapper;
@@ -115,15 +118,26 @@ public class BlogService {
                 request.content().trim());
         if (request.publish()) {
             requirePublishingAllowed(author);
-            blog.publish();
+            if (isAdmin(author)) {
+                blog.publish();
+            }
         }
         blogs.saveAndFlush(blog);
+        if (request.publish() && !isAdmin(author)) {
+            // Only administrators publish directly; everyone else's story goes to review.
+            reviews.submit(blog);
+        }
         return mapper.toDetail(blog, author.getId(), author.getRole());
     }
 
     public BlogDetailResponse update(Long id, UpdateBlogRequest request, AppUserDetails principal) {
         User actor = currentUser.require(principal);
         Blog blog = findOwnedOrAdmin(id, actor);
+        if (!isAdmin(actor) && blog.getStatus() == BlogStatus.PENDING_REVIEW) {
+            // The reviewer must approve exactly what they were sent.
+            throw ApiException.conflict("IN_REVIEW",
+                    "This story is waiting for review. You can edit it again once it has been reviewed.");
+        }
         String title = request.title().trim();
         if (blog.getStatus() == BlogStatus.DRAFT && !title.equals(blog.getTitle())) {
             // Drafts follow their title; published URLs stay stable.
@@ -134,6 +148,10 @@ public class BlogService {
         blog.setContent(request.content().trim());
         blog.setClub(resolveClub(request.clubId()));
         blogs.saveAndFlush(blog);
+        if (!isAdmin(actor) && blog.getStatus() == BlogStatus.PUBLISHED) {
+            // Changes to a live story by a non-admin are reviewed before they go live again.
+            reviews.submit(blog);
+        }
         auditIfNotAuthor(actor, blog, "BLOG_EDITED");
         return mapper.toDetail(blog, actor.getId(), actor.getRole());
     }
@@ -141,10 +159,15 @@ public class BlogService {
     public BlogDetailResponse publish(Long id, AppUserDetails principal) {
         User actor = currentUser.require(principal);
         Blog blog = findOwnedOrAdmin(id, actor);
-        if (blog.getStatus() != BlogStatus.PUBLISHED) {
+        if (isAdmin(actor)) {
+            if (blog.getStatus() != BlogStatus.PUBLISHED) {
+                blog.approve();
+                blogs.saveAndFlush(blog);
+            }
+        }
+        else if (blog.getStatus() != BlogStatus.PUBLISHED && blog.getStatus() != BlogStatus.PENDING_REVIEW) {
             requirePublishingAllowed(blog.getAuthor());
-            blog.publish();
-            blogs.saveAndFlush(blog);
+            reviews.submit(blog);
         }
         return mapper.toDetail(blog, actor.getId(), actor.getRole());
     }
@@ -209,6 +232,10 @@ public class BlogService {
             throw ApiException.forbidden("You can only change your own articles.");
         }
         return blog;
+    }
+
+    private static boolean isAdmin(User user) {
+        return user.getRole() == Role.ADMIN;
     }
 
     private boolean canSeeUnpublished(Blog blog, AppUserDetails viewer) {

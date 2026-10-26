@@ -79,6 +79,17 @@ app:
   # The "featured" feed (homepage default) lists this club's articles first, then everything
   # else, each by upvotes. Set to a club slug, or leave empty to rank everything by upvotes.
   featured-club: ${FEATURED_CLUB:manchester-city}
+  review:
+    # Stories by non-admin authors are emailed here for approval. Set it in the hosting
+    # environment; keep real addresses out of the repository.
+    email: ${REVIEW_EMAIL:}
+    max-pending: ${REVIEW_MAX_PENDING:3}
+    link-valid-days: ${REVIEW_LINK_VALID_DAYS:7}
+  mail:
+    resend-api-key: ${RESEND_API_KEY:}
+    from: ${MAIL_FROM:}
+    # Only for local development: one-time links in emails would otherwise end up in logs.
+    log-bodies: ${MAIL_LOG_BODIES:false}
   rate-limit:
     enabled: ${RATE_LIMIT_ENABLED:true}
     auth-per-minute: ${RATE_LIMIT_AUTH_PER_MINUTE:20}

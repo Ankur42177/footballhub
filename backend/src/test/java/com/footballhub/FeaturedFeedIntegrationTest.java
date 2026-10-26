@@ -10,6 +10,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.util.List;
 
 import com.footballhub.security.AppUserDetails;
+import com.footballhub.user.Role;
 import com.jayway.jsonpath.JsonPath;
 
 import org.junit.jupiter.api.Test;
@@ -23,7 +24,7 @@ class FeaturedFeedIntegrationTest extends IntegrationTestSupport {
 
     @Test
     void featuredClubFirstThenEverythingByUpvotes() throws Exception {
-        AppUserDetails author = createUser("author");
+        AppUserDetails author = createUser("author", Role.ADMIN);
         publish(author, "Arsenal five", "arsenal", 5);
         publish(author, "City one", "manchester-city", 1);
         publish(author, "General ten", null, 10);
@@ -35,7 +36,7 @@ class FeaturedFeedIntegrationTest extends IntegrationTestSupport {
 
     @Test
     void featuredOrderingSurvivesPaging() throws Exception {
-        AppUserDetails author = createUser("author");
+        AppUserDetails author = createUser("author", Role.ADMIN);
         publish(author, "Arsenal five", "arsenal", 5);
         publish(author, "City one", "manchester-city", 1);
         publish(author, "General ten", null, 10);
@@ -49,7 +50,7 @@ class FeaturedFeedIntegrationTest extends IntegrationTestSupport {
 
     @Test
     void otherSortsAreUnchanged() throws Exception {
-        AppUserDetails author = createUser("author");
+        AppUserDetails author = createUser("author", Role.ADMIN);
         publish(author, "City one", "manchester-city", 1);
         publish(author, "General ten", null, 10);
         assertThat(titles("sort=top")).containsExactly("General ten", "City one");

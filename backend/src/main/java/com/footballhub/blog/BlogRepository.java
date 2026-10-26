@@ -16,4 +16,10 @@ public interface BlogRepository extends JpaRepository<Blog, Long>, JpaSpecificat
     Page<Blog> findByAuthorId(Long authorId, Pageable pageable);
 
     Page<Blog> findByAuthorIdAndStatus(Long authorId, BlogStatus status, Pageable pageable);
+
+    long countByAuthorIdAndStatus(Long authorId, BlogStatus status);
+
+    Optional<Blog> findByReviewTokenHash(String reviewTokenHash);
+
+    Page<Blog> findByStatus(BlogStatus status, Pageable pageable);
 }
