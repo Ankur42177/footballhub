@@ -14,6 +14,9 @@ export function SiteFooter() {
           </p>
         </div>
         <nav aria-label="Footer" className="flex flex-wrap gap-x-5 gap-y-2">
+          <Link href="/learn" className="no-underline hover:text-chalk">
+            Learn football
+          </Link>
           <Link href="/clubs" className="no-underline hover:text-chalk">
             All clubs
           </Link>

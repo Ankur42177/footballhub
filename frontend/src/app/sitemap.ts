@@ -11,6 +11,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const base = siteUrl();
   return [
     { url: `${base}/`, changeFrequency: "hourly", priority: 1 },
+    { url: `${base}/learn`, changeFrequency: "monthly", priority: 0.8 },
     { url: `${base}/clubs`, changeFrequency: "weekly", priority: 0.8 },
     ...CLUBS.map((club) => ({
       url: `${base}/clubs/${club.slug}`,

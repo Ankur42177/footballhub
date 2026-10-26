@@ -12,6 +12,9 @@ export function SiteHeader() {
         </Link>
 
         <nav aria-label="Main" className="hidden items-center gap-5 text-[0.95rem] text-chalk-dim md:flex">
+          <Link href="/learn" className="font-semibold text-floodlight no-underline hover:text-chalk">
+            Learn football
+          </Link>
           <Link href="/clubs" className="no-underline hover:text-chalk">
             Clubs
           </Link>

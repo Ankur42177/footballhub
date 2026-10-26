@@ -59,6 +59,22 @@ async function HomeContent({ searchParams }: { searchParams: PageProps<"/">["sea
         </div>
       )}
 
+      <section aria-labelledby="learn-title" className="border-b border-line bg-pitch-raised">
+        <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-6 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+          <div>
+            <h2 id="learn-title" className="display-medium text-3xl">
+              New to football? <span className="text-floodlight">Start here.</span>
+            </h2>
+            <p className="mt-1 text-[0.95rem] text-chalk-dim">
+              Positions, the offside rule, fouls and cards, and how a season works, explained for beginners.
+            </p>
+          </div>
+          <Link href="/learn" className="btn btn-primary shrink-0 self-start sm:self-auto">
+            Learn football
+          </Link>
+        </div>
+      </section>
+
       <div className="mx-auto grid max-w-6xl gap-12 px-4 py-10 sm:px-6 lg:grid-cols-[minmax(0,1fr)_18rem]">
         <section aria-labelledby="feed-title">
           <div className="flex flex-wrap items-end justify-between gap-4">
